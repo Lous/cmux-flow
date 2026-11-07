@@ -15,6 +15,9 @@ import Observation
 final class SourceControlStore {
     private(set) var repositories: [SourceControlRepositorySnapshot] = []
     private(set) var hasCompletedInitialLoad = false
+    /// True while a refresh the user waits on runs: the first load and the
+    /// toolbar's refresh button. Refreshes driven by file changes stay silent so
+    /// the toolbar does not flash every time a terminal or agent writes a file.
     private(set) var isRefreshing = false
     /// Set when the bound workspace's files live on another machine.
     private(set) var unsupportedReason: String?
@@ -128,7 +131,24 @@ final class SourceControlStore {
                 panelDirectories: workspace.panelDirectories
             )
         )
-        requestRefresh(nil)
+        requestRefresh(nil, showsProgress: true)
+    }
+
+    /// Stages, unstages or discards `changes` in `repository`, then re-reads it.
+    /// Returns nil on success, or a message describing what failed.
+    func perform(
+        _ action: SourceControlWorkTreeAction,
+        on changes: [SourceControlFileChange],
+        in repository: SourceControlRepositorySnapshot
+    ) async -> String? {
+        let client = self.client
+        let root = repository.root
+        let hasCommits = repository.branch.oid != nil
+        let failure = await Task.detached(priority: .userInitiated) {
+            await client.perform(action, on: changes, inRepositoryRoot: root, hasCommits: hasCommits)
+        }.value
+        requestRefresh([root])
+        return failure
     }
 
     /// Stops listing `root` until a terminal in this workspace enters it again.
@@ -156,7 +176,7 @@ final class SourceControlStore {
             let isInitialLoad = !self.hasCompletedInitialLoad && self.refreshTask == nil
             self.roots = merged
             if isInitialLoad {
-                self.requestRefresh(nil)
+                self.requestRefresh(nil, showsProgress: true)
                 self.restartWatcher()
             } else if !added.isEmpty {
                 self.requestRefresh(added)
@@ -184,8 +204,11 @@ final class SourceControlStore {
 
     /// Queues a status refresh for `targets`, or for every repository when nil.
     /// Requests that arrive during a refresh are folded into the next pass.
-    private func requestRefresh(_ targets: Set<String>?) {
+    private func requestRefresh(_ targets: Set<String>?, showsProgress: Bool = false) {
         guard workspace != nil, unsupportedReason == nil else { return }
+        if showsProgress {
+            isRefreshing = true
+        }
         if let targets {
             pendingRoots.formUnion(targets)
         } else {
@@ -204,7 +227,6 @@ final class SourceControlStore {
             pendingFullRefresh = false
             pendingRoots = []
             guard !targets.isEmpty else { continue }
-            isRefreshing = true
             let client = self.client
             let limit = Self.maximumConcurrentSnapshots
             let snapshots = await Task.detached(priority: .utility) {

@@ -2,6 +2,9 @@ import CmuxFoundation
 import SwiftUI
 
 /// One changed file: name, dimmed folder, line counts and the status letter.
+///
+/// Hovering swaps the line counts for the row's actions (stage, unstage,
+/// discard), as VS Code does; the context menu offers the same actions.
 struct SourceControlFileRow: View {
     let change: SourceControlFileChange
     let isSelected: Bool
@@ -11,6 +14,9 @@ struct SourceControlFileRow: View {
     let onRevealInFinder: () -> Void
     let onCopyPath: () -> Void
     let onCopyRelativePath: () -> Void
+    let onStage: (() -> Void)?
+    let onUnstage: (() -> Void)?
+    let onDiscard: (() -> Void)?
 
     @State private var isHovered = false
 
@@ -31,7 +37,11 @@ struct SourceControlFileRow: View {
                     .truncationMode(.head)
             }
             Spacer(minLength: 4)
-            lineCounts
+            if isHovered && hasActions {
+                actionButtons
+            } else {
+                lineCounts
+            }
             Text(change.badge)
                 .cmuxFont(size: 11, weight: .semibold, design: .monospaced)
                 .foregroundColor(change.badgeColor)
@@ -55,11 +65,66 @@ struct SourceControlFileRow: View {
             if let onOpenFile {
                 Button(String(localized: "sourceControl.file.openFile", defaultValue: "Open File"), action: onOpenFile)
             }
+            if hasActions {
+                Divider()
+            }
+            if let onStage {
+                Button(stageLabel, action: onStage)
+            }
+            if let onUnstage {
+                Button(String(localized: "sourceControl.file.unstage", defaultValue: "Unstage Changes"), action: onUnstage)
+            }
+            if let onDiscard {
+                Button(String(localized: "sourceControl.file.discard", defaultValue: "Discard Changes…"), action: onDiscard)
+            }
             Divider()
             Button(String(localized: "sourceControl.file.revealInFinder", defaultValue: "Reveal in Finder"), action: onRevealInFinder)
             Button(String(localized: "sourceControl.file.copyPath", defaultValue: "Copy Path"), action: onCopyPath)
             Button(String(localized: "sourceControl.file.copyRelativePath", defaultValue: "Copy Relative Path"), action: onCopyRelativePath)
         }
+    }
+
+    private var hasActions: Bool {
+        onStage != nil || onUnstage != nil || onDiscard != nil
+    }
+
+    private var stageLabel: String {
+        change.group == .conflicts
+            ? String(localized: "sourceControl.file.markResolved", defaultValue: "Stage (Mark as Resolved)")
+            : String(localized: "sourceControl.file.stage", defaultValue: "Stage Changes")
+    }
+
+    private var actionButtons: some View {
+        HStack(spacing: 2) {
+            if let onDiscard {
+                rowActionButton(
+                    symbol: "arrow.uturn.backward",
+                    help: String(localized: "sourceControl.file.discard", defaultValue: "Discard Changes…"),
+                    action: onDiscard
+                )
+            }
+            if let onStage {
+                rowActionButton(symbol: "plus", help: stageLabel, action: onStage)
+            }
+            if let onUnstage {
+                rowActionButton(
+                    symbol: "minus",
+                    help: String(localized: "sourceControl.file.unstage", defaultValue: "Unstage Changes"),
+                    action: onUnstage
+                )
+            }
+        }
+    }
+
+    private func rowActionButton(symbol: String, help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            CmuxSystemSymbolImage(magnified: symbol, pointSize: 10, weight: .semibold, tint: .secondary)
+                .frame(width: 18, height: 16)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(help)
+        .accessibilityLabel(help)
     }
 
     @ViewBuilder

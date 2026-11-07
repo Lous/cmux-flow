@@ -13,6 +13,9 @@ struct SourceControlRepositoryHeaderRow: View {
     let onRevealInFinder: () -> Void
     let onCopyPath: () -> Void
     let onRemove: () -> Void
+    var onStageAll: (() -> Void)?
+    var onUnstageAll: (() -> Void)?
+    var onDiscardAll: (() -> Void)?
 
     @State private var isHovered = false
 
@@ -63,6 +66,18 @@ struct SourceControlRepositoryHeaderRow: View {
             Button(String(localized: "sourceControl.repository.openChanges", defaultValue: "Open Changes"), action: { onOpenDiff(.workingTree) })
             Button(String(localized: "sourceControl.repository.openStagedChanges", defaultValue: "Open Staged Changes"), action: { onOpenDiff(.staged) })
             Button(String(localized: "sourceControl.repository.compareWithBase", defaultValue: "Compare Branch with Base"), action: { onOpenDiff(.branchBase) })
+            if onStageAll != nil || onUnstageAll != nil || onDiscardAll != nil {
+                Divider()
+            }
+            if let onStageAll {
+                Button(String(localized: "sourceControl.section.stageAll", defaultValue: "Stage All Changes"), action: onStageAll)
+            }
+            if let onUnstageAll {
+                Button(String(localized: "sourceControl.section.unstageAll", defaultValue: "Unstage All Changes"), action: onUnstageAll)
+            }
+            if let onDiscardAll {
+                Button(String(localized: "sourceControl.section.discardAll", defaultValue: "Discard All Changes…"), action: onDiscardAll)
+            }
             Divider()
             Button(String(localized: "sourceControl.repository.revealInFinder", defaultValue: "Reveal in Finder"), action: onRevealInFinder)
             Button(String(localized: "sourceControl.repository.copyPath", defaultValue: "Copy Path"), action: onCopyPath)

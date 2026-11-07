@@ -238,6 +238,69 @@ struct SourceControlGitClient: Sendable {
         return parser.parseNumstat(output.stdout)
     }
 
+    // MARK: - Work tree actions
+
+    /// Applies `action` to `changes`, all in the repository at `root`.
+    /// Returns nil on success, or a message describing what failed.
+    func perform(
+        _ action: SourceControlWorkTreeAction,
+        on changes: [SourceControlFileChange],
+        inRepositoryRoot root: String,
+        hasCommits: Bool
+    ) async -> String? {
+        guard !changes.isEmpty else { return nil }
+        switch action {
+        case .stage:
+            let paths = Self.uniquePaths(changes.flatMap { [$0.path] + [$0.originalPath].compactMap { $0 } })
+            return await runWrite(["add", "-A", "--"] + paths, in: root)
+        case .unstage:
+            let paths = Self.uniquePaths(changes.flatMap { [$0.path] + [$0.originalPath].compactMap { $0 } })
+            // A repository without commits has no HEAD to restore the index from.
+            let arguments = hasCommits
+                ? ["restore", "--staged", "--"] + paths
+                : ["rm", "--cached", "-r", "-q", "--"] + paths
+            return await runWrite(arguments, in: root)
+        case .discard:
+            let untracked = changes.filter { $0.group == .untracked }
+            let tracked = changes.filter { $0.group == .unstaged }
+            if !tracked.isEmpty {
+                let paths = Self.uniquePaths(tracked.map(\.path))
+                if let failure = await runWrite(["restore", "--worktree", "--"] + paths, in: root) {
+                    return failure
+                }
+            }
+            // Untracked files go to the Trash rather than being deleted, so a
+            // mistaken discard can be undone from Finder.
+            for change in untracked {
+                let url = URL(fileURLWithPath: root).appendingPathComponent(change.path)
+                do {
+                    try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+                } catch {
+                    return error.localizedDescription
+                }
+            }
+            return nil
+        }
+    }
+
+    private func runWrite(_ arguments: [String], in root: String) async -> String? {
+        guard let output = await run(arguments, in: root) else {
+            return String(localized: "sourceControl.error.gitUnavailable", defaultValue: "Git could not be started.")
+        }
+        guard output.status == 0 else {
+            return String(
+                localized: "sourceControl.error.commandFailed",
+                defaultValue: "git \(arguments.first ?? "") failed (exit \(output.status))."
+            )
+        }
+        return nil
+    }
+
+    private static func uniquePaths(_ paths: [String]) -> [String] {
+        var seen = Set<String>()
+        return paths.filter { seen.insert($0).inserted }
+    }
+
     // MARK: - Patches
 
     /// A unified diff for one entry, in the format `cmux diff` renders.

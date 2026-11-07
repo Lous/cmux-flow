@@ -182,7 +182,16 @@ struct SourceControlPanelView: View {
             onOpenDiff: { source in onOpenDiff(.repository(root: repository.root, source: source)) },
             onRevealInFinder: { reveal(repository.root) },
             onCopyPath: { copy(repository.root) },
-            onRemove: { store.removeRepository(repository.root) }
+            onRemove: { store.removeRepository(repository.root) },
+            onStageAll: workingTreeChanges(repository).isEmpty ? nil : {
+                perform(.stage, workingTreeChanges(repository), in: repository)
+            },
+            onUnstageAll: repository.changes(in: .staged).isEmpty ? nil : {
+                perform(.unstage, repository.changes(in: .staged), in: repository)
+            },
+            onDiscardAll: workingTreeChanges(repository).isEmpty ? nil : {
+                perform(.discard, workingTreeChanges(repository), in: repository)
+            }
         )
         if !isCollapsed {
             if let errorMessage = repository.errorMessage {
@@ -211,7 +220,10 @@ struct SourceControlPanelView: View {
                 title: section.title,
                 count: changes.count,
                 isCollapsed: isCollapsed,
-                onToggle: { toggle(&collapsedSections, sectionKey) }
+                onToggle: { toggle(&collapsedSections, sectionKey) },
+                onStageAll: section == .staged ? nil : { perform(.stage, changes, in: repository) },
+                onUnstageAll: section == .staged ? { perform(.unstage, changes, in: repository) } : nil,
+                onDiscardAll: section == .changes ? { perform(.discard, changes, in: repository) } : nil
             )
             if !isCollapsed {
                 ForEach(changes) { change in
@@ -238,7 +250,12 @@ struct SourceControlPanelView: View {
             onOpenFile: change.isDeletion ? nil : { onOpenFile(absolutePath) },
             onRevealInFinder: { reveal(absolutePath) },
             onCopyPath: { copy(absolutePath) },
-            onCopyRelativePath: { copy(change.path) }
+            onCopyRelativePath: { copy(change.path) },
+            onStage: change.group == .staged ? nil : { perform(.stage, [change], in: repository) },
+            onUnstage: change.group == .staged ? { perform(.unstage, [change], in: repository) } : nil,
+            onDiscard: (change.group == .unstaged || change.group == .untracked)
+                ? { perform(.discard, [change], in: repository) }
+                : nil
         )
     }
 
@@ -267,6 +284,59 @@ struct SourceControlPanelView: View {
     }
 
     // MARK: - Actions
+
+    /// Unstaged and untracked entries: what "Stage All" and "Discard All" act on.
+    private func workingTreeChanges(_ repository: SourceControlRepositorySnapshot) -> [SourceControlFileChange] {
+        repository.changes(in: .unstaged) + repository.changes(in: .untracked)
+    }
+
+    private func perform(
+        _ action: SourceControlWorkTreeAction,
+        _ changes: [SourceControlFileChange],
+        in repository: SourceControlRepositorySnapshot
+    ) {
+        guard !changes.isEmpty else { return }
+        if action == .discard, !confirmDiscard(changes) {
+            return
+        }
+        Task { @MainActor in
+            if let failure = await store.perform(action, on: changes, in: repository) {
+                let alert = NSAlert()
+                alert.alertStyle = .warning
+                alert.messageText = String(localized: "sourceControl.error.actionFailed", defaultValue: "Source Control action failed")
+                alert.informativeText = failure
+                alert.runModal()
+            }
+        }
+    }
+
+    /// Discarding tracked changes cannot be undone, so it always asks first.
+    private func confirmDiscard(_ changes: [SourceControlFileChange]) -> Bool {
+        let paths = Set(changes.map(\.path))
+        let movesToTrash = changes.contains { $0.group == .untracked }
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        if paths.count == 1, let path = paths.first {
+            alert.messageText = String(
+                localized: "sourceControl.discard.confirm.one",
+                defaultValue: "Discard changes in \((path as NSString).lastPathComponent)?"
+            )
+        } else {
+            alert.messageText = String(
+                localized: "sourceControl.discard.confirm.many",
+                defaultValue: "Discard changes in \(paths.count) files?"
+            )
+        }
+        alert.informativeText = movesToTrash
+            ? String(
+                localized: "sourceControl.discard.detail.trash",
+                defaultValue: "Changes to tracked files can't be undone. New files are moved to the Trash."
+            )
+            : String(localized: "sourceControl.discard.detail", defaultValue: "This can't be undone.")
+        alert.addButton(withTitle: String(localized: "sourceControl.discard.button", defaultValue: "Discard Changes"))
+        alert.addButton(withTitle: String(localized: "sourceControl.discard.cancel", defaultValue: "Cancel"))
+        return alert.runModal() == .alertFirstButtonReturn
+    }
 
     private func toggle(_ set: inout Set<String>, _ key: String) {
         if set.contains(key) {

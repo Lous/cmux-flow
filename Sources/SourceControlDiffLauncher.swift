@@ -28,11 +28,22 @@ struct SourceControlDiffLauncher {
         self.patchDirectory = patchDirectory
     }
 
-    func open(_ request: SourceControlDiffRequest, in workspace: Workspace) {
+    /// Opens `request`'s diff. `replacedPanelId` names a tracked diff tab this one
+    /// supersedes (a theme change reopening it); it closes once the new one is up.
+    func open(_ request: SourceControlDiffRequest, in workspace: Workspace, replacing replacedPanelId: UUID? = nil) {
+        let track: @MainActor (UUID) -> Void = { [weak workspace] surfaceId in
+            guard let workspace else { return }
+            AppDelegate.shared?.sourceControlDiffPreviewTracker.didOpen(
+                panelId: surfaceId,
+                request: request,
+                in: workspace,
+                replacing: replacedPanelId
+            )
+        }
         switch request {
         case .repository(let root, let source):
-            launch(sourceArguments: [source.cliFlag], cwd: root, workspace: workspace)
-        case .file(let change, let root, let opensAsPreview):
+            launch(sourceArguments: [source.cliFlag], cwd: root, workspace: workspace, onOpened: track)
+        case .file(let change, let root, _):
             let client = self.client
             let directory = patchDirectory
             let title = "\((root as NSString).lastPathComponent): \(change.path)"
@@ -51,11 +62,8 @@ struct SourceControlDiffLauncher {
                     sourceArguments: [patchURL.path, "--title", title],
                     cwd: root,
                     workspace: workspace,
-                    reportsOpenedSurface: opensAsPreview
-                ) { [weak workspace] surfaceId in
-                    guard let workspace else { return }
-                    AppDelegate.shared?.sourceControlDiffPreviewTracker.replacePreview(in: workspace, with: surfaceId)
-                }
+                    onOpened: track
+                )
             }
         }
     }
@@ -64,8 +72,7 @@ struct SourceControlDiffLauncher {
         sourceArguments: [String],
         cwd: String,
         workspace: Workspace,
-        reportsOpenedSurface: Bool = false,
-        onOpened: (@MainActor (UUID) -> Void)? = nil
+        onOpened: @escaping @MainActor (UUID) -> Void
     ) {
         guard let appDelegate = AppDelegate.shared,
               let cliURL = Bundle.main.resourceURL?.appendingPathComponent("bin/cmux"),
@@ -86,11 +93,11 @@ struct SourceControlDiffLauncher {
             sessionId: nil,
             focus: false,
             sourceArguments: sourceArguments,
-            globalArguments: reportsOpenedSurface ? ["--id-format", "uuids"] : [],
+            globalArguments: ["--id-format", "uuids"],
             onExit: { status, output in
                 guard status == 0,
                       let surfaceId = SourceControlDiffPreviewTracker.openedSurfaceId(fromCLIOutput: output) else { return }
-                onOpened?(surfaceId)
+                onOpened(surfaceId)
             }
         )
     }

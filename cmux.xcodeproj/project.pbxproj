@@ -3741,6 +3741,7 @@
 		B130361B63DFC4355F23759B /* SourceControlRepositorySnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381C192E7C5387864204240A /* SourceControlRepositorySnapshot.swift */; };
 		7052AAFFA3575FA14B89A738 /* SourceControlStatusParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A951AE216C2A160A71D4A657 /* SourceControlStatusParser.swift */; };
 		58D8557D78A009CE0E812E9B /* SourceControlStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E163BCF61F0CED46EB0693B9 /* SourceControlStore.swift */; };
+		10CBC46439734A0F84E01A83 /* SourceControlWorkTreeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 492CE7339662A7AB3536836C /* SourceControlWorkTreeAction.swift */; };
 		A5001230 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A5001231 /* Sparkle */; };
 		A6AC72050000000000000001 /* SpinnerCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AC72050000000000000002 /* SpinnerCard.swift */; };
 		A6AC72090000000000000001 /* SpinnerEnergy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AC72090000000000000002 /* SpinnerEnergy.swift */; };
@@ -8440,6 +8441,7 @@
 		381C192E7C5387864204240A /* SourceControlRepositorySnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlRepositorySnapshot.swift; sourceTree = "<group>"; };
 		A951AE216C2A160A71D4A657 /* SourceControlStatusParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlStatusParser.swift; sourceTree = "<group>"; };
 		E163BCF61F0CED46EB0693B9 /* SourceControlStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlStore.swift; sourceTree = "<group>"; };
+		492CE7339662A7AB3536836C /* SourceControlWorkTreeAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlWorkTreeAction.swift; sourceTree = "<group>"; };
 		A6AC72050000000000000002 /* SpinnerCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerCard.swift; sourceTree = "<group>"; };
 		A6AC72090000000000000002 /* SpinnerEnergy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerEnergy.swift; sourceTree = "<group>"; };
 		5B11E5A100000000000000A2 /* SpinnerGalleryDebugWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerGalleryDebugWindowController.swift; sourceTree = "<group>"; };
@@ -12740,6 +12742,7 @@
 				E163BCF61F0CED46EB0693B9 /* SourceControlStore.swift */,
 				2800E33BFD6C40F91FE350B8 /* FileExplorerGitStatusWatcher.swift */,
 				F4124B89E530B181FEF383B7 /* SourceControlDiffPreviewTracker.swift */,
+				492CE7339662A7AB3536836C /* SourceControlWorkTreeAction.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -17278,6 +17281,7 @@
 				B130361B63DFC4355F23759B /* SourceControlRepositorySnapshot.swift in Sources */,
 				7052AAFFA3575FA14B89A738 /* SourceControlStatusParser.swift in Sources */,
 				58D8557D78A009CE0E812E9B /* SourceControlStore.swift in Sources */,
+				10CBC46439734A0F84E01A83 /* SourceControlWorkTreeAction.swift in Sources */,
 					A6AC72050000000000000001 /* SpinnerCard.swift in Sources */,
 					A6AC72090000000000000001 /* SpinnerEnergy.swift in Sources */,
 					5B11E5A100000000000000A1 /* SpinnerGalleryDebugWindowController.swift in Sources */,
