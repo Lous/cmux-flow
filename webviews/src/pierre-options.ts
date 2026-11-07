@@ -106,6 +106,12 @@ export function codeViewUnsafeCSS(): string {
     [data-separator='line-info'] {
       background-color: transparent;
     }
+    /* Pierre pins the line-number gutter (sticky, left: 0) while long lines
+       scroll sideways. Over the transparent surface the scrolled code showed
+       through the numbers, so the gutter keeps the theme's opaque background. */
+    [data-overflow='scroll'] [data-gutter] {
+      background-color: var(--cmux-diff-bg);
+    }
     [data-utility-button] {
       display: inline-flex;
       align-items: center;

@@ -34,6 +34,14 @@ test("code view CSS keeps Pierre structural surfaces transparent", () => {
   expect(css).not.toContain("[data-line-type='change-deletion'] {");
 });
 
+test("sticky line-number gutter hides code scrolled sideways under it", () => {
+  // Pierre pins the gutter with \`position: sticky; left: 0\` when long lines
+  // scroll; a transparent gutter lets that code show through the numbers.
+  const css = codeViewUnsafeCSS();
+
+  expect(css).toContain("[data-overflow='scroll'] [data-gutter] {\n      background-color: var(--cmux-diff-bg);");
+});
+
 test("file tree sticky overlays use a non-transparent surface", () => {
   const css = fileTreeUnsafeCSS();
 
