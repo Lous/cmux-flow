@@ -51,6 +51,26 @@ test("large diff navigation keeps the rendered DOM bounded", () => {
   expect(openedSearch).toBe(true);
 });
 
+test("a single-file diff shows no jump control", () => {
+  const items = [{
+    id: "src/only.ts",
+    type: "diff",
+    fileDiff: { name: "src/only.ts", hunks: [] },
+    version: 0,
+  }] as DiffItem[];
+  const markup = renderToStaticMarkup(
+    <JumpSelect
+      items={items}
+      label={createDiffViewerLabelResolver(undefined)}
+      onJump={() => {}}
+      onOpenSearch={() => {}}
+      searchOpen={false}
+      selectedItemId="src/only.ts"
+    />,
+  );
+  expect(markup).toBe("");
+});
+
 test("mobile file drawer backdrop is an accessible close control", () => {
   const label = createDiffViewerLabelResolver(undefined);
   const markup = renderToStaticMarkup(

@@ -840,6 +840,11 @@ export function App({ config, initialStatus }: ConfigProps) {
                 renderHeaderMetadata={(item) => (
                   <>
                     <DiffHeaderMetadata fileDiff={(item as DiffItem).fileDiff} label={label} />
+                    <RevealInFilesButton
+                      path={fileName((item as DiffItem).fileDiff, "")}
+                      repoRoot={typeof payload.repoRoot === "string" ? payload.repoRoot : undefined}
+                      label={label}
+                    />
                     <FileReviewControls
                       item={item as DiffItem}
                       label={label}
@@ -1068,6 +1073,42 @@ function useViewedFilesBootstrap(scope: ViewedScope | null, dispatch: React.Disp
     // `scope` is a fresh object per render; `scopeKey` is its identity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, scopeKey]);
+}
+
+type RevealFileMessageHandler = { postMessage: (message: { path: string; repoRoot?: string }) => void };
+
+function revealFileMessageHandler(): RevealFileMessageHandler | null {
+  const handler = (window as any).webkit?.messageHandlers?.cmuxDiffRevealFile;
+  return handler && typeof handler.postMessage === "function" ? handler : null;
+}
+
+/** "Show in Files": asks the app to select this file in the window's Files tab. */
+function RevealInFilesButton({
+  path,
+  repoRoot,
+  label,
+}: {
+  path: string;
+  repoRoot?: string;
+  label: DiffViewerLabelResolver;
+}) {
+  const handler = revealFileMessageHandler();
+  if (!handler || !path) {
+    return null;
+  }
+  return (
+    <button
+      type="button"
+      className="file-review-load"
+      title={label("showInFiles")}
+      onClick={(event) => {
+        event.stopPropagation();
+        handler.postMessage(repoRoot ? { path, repoRoot } : { path });
+      }}
+    >
+      {label("showInFiles")}
+    </button>
+  );
 }
 
 /**
@@ -1660,7 +1701,8 @@ export function JumpSelect({
   searchOpen: boolean;
   selectedItemId: string;
 }) {
-  if (items.length === 0) {
+  // A single-file diff has nowhere to jump to.
+  if (items.length <= 1) {
     return null;
   }
   if (items.length > 500) {

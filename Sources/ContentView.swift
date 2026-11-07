@@ -3491,6 +3491,15 @@ struct ContentView: View {
             syncFileExplorerDirectory()
         })
 
+        view = AnyView(view.onChange(of: fileExplorerState.revealRequest) { _, request in
+            guard let request else { return }
+            Task { @MainActor in
+                if !(await fileExplorerStore.reveal(path: request.path)) {
+                    NSSound.beep()
+                }
+            }
+        })
+
         view = AnyView(view.onChange(of: sidebarMatchTerminalBackground) { _ in
             tabManager.applyWindowBackdropModeForAllTabs(reason: "sidebarMatchTerminalBackgroundChanged")
             guard sidebarState.isVisible,

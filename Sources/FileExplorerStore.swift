@@ -1234,6 +1234,8 @@ final class FileExplorerStore: ObservableObject {
 
     /// In-flight in-place root refresh (see ``refreshRootInPlace()``).
     private var rootRefreshTask: Task<Void, Never>?
+    /// Set by ``reveal(path:)`` so the outline scrolls the revealed row into view once.
+    private var revealScrollRequested = false
 
     var workspaceRootObservation: FileExplorerWorkspaceObservation?
     var remoteHomeResolutionTask: Task<Void, Never>?
@@ -1804,6 +1806,43 @@ final class FileExplorerStore: ObservableObject {
                 await self.loadChildren(for: directory, at: directoryPath)
             }
         }
+    }
+
+    /// Expands every folder between the root and `path`, selects `path` and asks
+    /// the outline to scroll it into view. Returns false when `path` is not
+    /// inside the current root or no longer exists.
+    @discardableResult
+    func reveal(path: String) async -> Bool {
+        let root = rootPath
+        guard !root.isEmpty, Self.path(path, isContainedIn: root), !Self.pathsEqual(path, root) else { return false }
+        if rootNodes.isEmpty, let rootLoad = loadTasks[root] {
+            await rootLoad.value
+        }
+        var ancestors: [String] = []
+        var current = (path as NSString).deletingLastPathComponent
+        while Self.path(current, isContainedIn: root), !Self.pathsEqual(current, root) {
+            ancestors.insert(current, at: 0)
+            current = (current as NSString).deletingLastPathComponent
+        }
+        for ancestor in ancestors {
+            guard rootPath == root, let node = nodesByPath[ancestor], node.isDirectory else { return false }
+            expandedPaths.insert(ancestor)
+            if node.children == nil {
+                await loadChildren(for: node, at: ancestor)
+            }
+        }
+        guard rootPath == root, nodesByPath[path] != nil else { return false }
+        selectedPath = path
+        selectedPaths = [path]
+        revealScrollRequested = true
+        objectWillChange.send()
+        return true
+    }
+
+    /// Whether the next selection sync should scroll; true once after a reveal.
+    func consumeRevealScrollRequest() -> Bool {
+        defer { revealScrollRequested = false }
+        return revealScrollRequested
     }
 
     func expand(node: FileExplorerNode) {

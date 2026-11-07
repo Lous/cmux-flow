@@ -78,6 +78,7 @@ const DEFAULT_DIFF_VIEWER_LABELS = {
   repoPath: "Repository path",
   showBackgrounds: "Show backgrounds",
   showFiles: "Show files",
+  showInFiles: "Show in Files",
   showFileSearch: "Show file search",
   showLineNumbers: "Show line numbers",
   showViewedFiles: "Show viewed files",

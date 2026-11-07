@@ -51,6 +51,8 @@ final class FileExplorerState: ObservableObject {
     /// focus ring when the sidebar owns focus, and vice versa. Runtime-only (not
     /// persisted).
     @Published var rightSidebarOwnsInputFocus: Bool = false
+    /// A file the Files tab should reveal; the window's content view hands it to the store.
+    @Published var revealRequest: FileExplorerRevealRequest?
 
     /// The right-sidebar Cloud picker belongs to this window, even before it mounts.
     @MainActor lazy var cloudTeamPickerPresentation = CloudTeamPickerPresentation()

@@ -87,7 +87,10 @@ describe("appearanceBackgroundColor", () => {
     expect(style.getPropertyValue("--cmux-diff-addition-fg-dark")).toBe("#a6e22e");
   });
 
-  test("keeps the page surface transparent for opaque themes", () => {
+  test("paints the page with the opened theme's background for opaque themes", () => {
+    // The syntax colors are baked in when the viewer opens, so the page owns a
+    // matching fill: a later app theme change must never leave them over
+    // another theme's background.
     dom = new JSDOM("<!doctype html><html><body></body></html>");
     (globalThis as any).document = dom.window.document;
 
@@ -100,8 +103,8 @@ describe("appearanceBackgroundColor", () => {
     }));
 
     const style = dom.window.document.documentElement.style;
-    expect(style.getPropertyValue("--cmux-diff-surface-fill-light")).toBe("transparent");
-    expect(style.getPropertyValue("--cmux-diff-surface-fill-dark")).toBe("transparent");
+    expect(style.getPropertyValue("--cmux-diff-surface-fill-light")).toBe("#feffff");
+    expect(style.getPropertyValue("--cmux-diff-surface-fill-dark")).toBe("#272822");
   });
 
   test("keeps the surface fill transparent for transparent themes so the blurred backdrop shows", () => {

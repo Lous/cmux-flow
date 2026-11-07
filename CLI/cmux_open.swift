@@ -602,6 +602,7 @@ extension CMUXCLI {
                 "branchPickerUseRaw": CMUXDiffViewerLocalization.string("diffViewer.branchPickerUseRaw", defaultValue: "Use \"{ref}\" (raw)"),
                 "showBackgrounds": CMUXDiffViewerLocalization.string("diffViewer.showBackgrounds", defaultValue: "Show backgrounds"),
                 "showFiles": CMUXDiffViewerLocalization.string("diffViewer.showFiles", defaultValue: "Show files"),
+                "showInFiles": CMUXDiffViewerLocalization.string("diffViewer.showInFiles", defaultValue: "Show in Files"),
                 "showFileSearch": CMUXDiffViewerLocalization.string("diffViewer.showFileSearch", defaultValue: "Show file search"),
                 "showLineNumbers": CMUXDiffViewerLocalization.string("diffViewer.showLineNumbers", defaultValue: "Show line numbers"),
                 "switchToSplitDiff": CMUXDiffViewerLocalization.string("diffViewer.switchToSplitDiff", defaultValue: "Switch to split diff"),

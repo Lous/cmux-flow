@@ -233,7 +233,7 @@ struct FileExplorerPanelView: NSViewRepresentable {
                 } else {
                     refreshLoadedNodes(in: outlineView)
                 }
-                applyStoredSelection(in: outlineView, fallbackToFirstVisible: false, scroll: false)
+                applyStoredSelection(in: outlineView, fallbackToFirstVisible: false, scroll: store.consumeRevealScrollRequest())
             }
         }
 

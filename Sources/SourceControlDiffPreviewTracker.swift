@@ -48,6 +48,15 @@ final class SourceControlDiffPreviewTracker {
         pruneClosedDiffs()
     }
 
+    /// The repository a tracked diff tab shows, for resolving its relative paths.
+    func repositoryRoot(forPanel panelId: UUID) -> String? {
+        switch openDiffs[panelId]?.request {
+        case .file(_, let root, _): return root
+        case .repository(let root, _): return root
+        case nil: return nil
+        }
+    }
+
     private func close(_ panelId: UUID, in workspace: Workspace) {
         openDiffs.removeValue(forKey: panelId)
         guard Self.isDiffViewer(panelId, in: workspace) else { return }
