@@ -82,3 +82,6 @@ tmux-*.log
 
 # Locally downloaded prebuilt client for Packages/Shared/CmuxTerminalClient
 Packages/Shared/CmuxTerminalClient/CmuxTerminalClient.xcframework/
+
+# cmux-flow fork build output
+/dist/

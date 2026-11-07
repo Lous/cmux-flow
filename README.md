@@ -1,3 +1,10 @@
+> [!NOTE]
+> **This is cmux-flow, an unofficial fork of [cmux](https://github.com/manaflow-ai/cmux).**
+> It adds a Git tab and a git-aware Files explorer for workspaces that span several
+> repositories. It is not affiliated with or endorsed by Manaflow, Inc. See
+> [FORK.md](FORK.md) for what changed, how it differs from cmux, and how to install or
+> build it. The original cmux README follows.
+
 <h1 align="center">cmux</h1>
 <p align="center">A Ghostty-based macOS terminal with vertical tabs and notifications for AI coding agents</p>
 
