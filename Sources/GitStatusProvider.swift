@@ -21,18 +21,90 @@ struct GitStatusProvider: Sendable {
         self.environment = environment
     }
 
+    /// Git status for an explorer root, plus what the explorer needs to keep it live.
+    struct Result: Equatable, Sendable {
+        var statusByPath: [String: GitFileStatus] = [:]
+        /// Directories Git reported whole (`?? dir/`): everything inside them is untracked.
+        var untrackedDirectories: [String] = []
+        /// Work trees the status came from, physically spelled, for change watching.
+        var repositoryRoots: [String] = []
+    }
+
+    /// Most repositories a folder of projects contributes, so a huge container
+    /// folder cannot fan out into hundreds of `git status` runs.
+    private static let maximumNestedRepositories = 24
+
     func fetchStatus(directory: String) -> [String: GitFileStatus] {
-        guard let repoRoot = gitRepoRoot(for: directory) else { return [:] }
+        fetchStatusResult(directory: directory).statusByPath
+    }
+
+    /// Status for `directory`. Inside a work tree this is that repository's status.
+    /// Otherwise (a workspace opened on a folder of projects) it merges the status
+    /// of each immediate child that is a repository, and marks each changed
+    /// repository folder so it stands out in the parent listing.
+    func fetchStatusResult(directory: String) -> Result {
+        guard let repoRoot = gitRepoRoot(for: directory) else {
+            return fetchNestedRepositoriesStatus(directory: directory)
+        }
         // git reports the repo root physically (/private/var/...) while the caller may spell
         // the explorer root through a symlink (/var, /tmp, a symlinked project dir). Resolve
         // both to one spelling for the containment check, and emit keys under the caller's
         // spelling so FileExplorerStore lookups match.
-        return parseGitStatus(
+        var result = parseGitStatus(
             output: runGit(in: repoRoot, arguments: ["status", "--porcelain=v1", "-z"]),
             repoRoot: Self.canonicalPath(repoRoot),
             explorerRoot: Self.canonicalPath(directory),
             keyRoot: directory
         )
+        result.repositoryRoots = [repoRoot]
+        return result
+    }
+
+    private func fetchNestedRepositoriesStatus(directory: String) -> Result {
+        var result = Result()
+        for child in Self.childRepositoryDirectories(of: directory, homeDirectory: environment["HOME"]) {
+            guard result.repositoryRoots.count < Self.maximumNestedRepositories,
+                  let repoRoot = gitRepoRoot(for: child) else { continue }
+            let childResult = parseGitStatus(
+                output: runGit(in: repoRoot, arguments: ["status", "--porcelain=v1", "-z"]),
+                repoRoot: Self.canonicalPath(repoRoot),
+                explorerRoot: Self.canonicalPath(child),
+                keyRoot: child
+            )
+            result.repositoryRoots.append(repoRoot)
+            result.untrackedDirectories.append(contentsOf: childResult.untrackedDirectories)
+            result.statusByPath.merge(childResult.statusByPath) { current, _ in current }
+            if !childResult.statusByPath.isEmpty {
+                let onlyUntracked = childResult.statusByPath.values.allSatisfy { $0 == .untracked }
+                result.statusByPath[child] = onlyUntracked ? .untracked : .modified
+            }
+        }
+        return result
+    }
+
+    /// Immediate, non-hidden children of `directory` that hold a `.git` entry
+    /// (a directory for a clone, a file for a linked worktree or submodule),
+    /// spelled under the caller's `directory`. The home folder and the volume
+    /// root are never scanned: they are not project folders, and scanning them
+    /// would touch privacy-protected folders such as Desktop and Documents.
+    private static func childRepositoryDirectories(of directory: String, homeDirectory: String?) -> [String] {
+        let canonicalDirectory = canonicalPath(directory)
+        let home = canonicalPath(homeDirectory ?? FileManager.default.homeDirectoryForCurrentUser.path)
+        guard canonicalDirectory != "/", canonicalDirectory != home else { return [] }
+        let fileManager = FileManager.default
+        guard let names = try? fileManager.contentsOfDirectory(atPath: directory) else { return [] }
+        return names
+            .filter { !$0.hasPrefix(".") }
+            .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            .compactMap { name -> String? in
+                let child = (pathWithoutTrailingSlashes(directory) as NSString).appendingPathComponent(name)
+                var isDirectory: ObjCBool = false
+                guard fileManager.fileExists(atPath: child, isDirectory: &isDirectory), isDirectory.boolValue,
+                      fileManager.fileExists(atPath: (child as NSString).appendingPathComponent(".git")) else {
+                    return nil
+                }
+                return child
+            }
     }
 
     func fetchStatusSSH(
@@ -57,13 +129,15 @@ struct GitStatusProvider: Sendable {
         // Remote paths must not be resolved against the local filesystem, so the comparison
         // space and the key space are both the caller's spelling here.
         return parseGitStatus(output: parts[1], repoRoot: repoRoot, explorerRoot: directory, keyRoot: directory)
+            .statusByPath
     }
 
     private func parseGitStatus(
         output: String?, repoRoot: String, explorerRoot: String, keyRoot: String
-    ) -> [String: GitFileStatus] {
-        guard let output, !output.isEmpty else { return [:] }
+    ) -> Result {
+        guard let output, !output.isEmpty else { return Result() }
         var statusMap: [String: GitFileStatus] = [:]
+        var untrackedDirectories: [String] = []
         let normalizedRepoRoot = Self.pathWithoutTrailingSlashes(repoRoot)
         let normalizedExplorerRoot = Self.pathWithoutTrailingSlashes(explorerRoot)
         let normalizedKeyRoot = Self.pathWithoutTrailingSlashes(keyRoot)
@@ -78,7 +152,11 @@ struct GitStatusProvider: Sendable {
             }
             let indexStatus = entry[entry.startIndex]
             let workTreeStatus = entry[entry.index(after: entry.startIndex)]
-            let path = String(entry.dropFirst(3))
+            // An untracked directory arrives whole as "dir/"; drop the slash so the
+            // key matches the explorer's node path for that folder.
+            let reportedPath = String(entry.dropFirst(3))
+            let isDirectoryEntry = reportedPath.hasSuffix("/")
+            let path = Self.pathWithoutTrailingSlashes(reportedPath)
             let usesSecondPath = Self.statusUsesSecondPath(index: indexStatus, workTree: workTreeStatus)
             entryIndex += usesSecondPath ? 2 : 1
             guard let status = parseStatusChars(index: indexStatus, workTree: workTreeStatus) else { continue }
@@ -99,6 +177,9 @@ struct GitStatusProvider: Sendable {
             }
 
             statusMap[key] = status
+            if isDirectoryEntry && status == .untracked {
+                untrackedDirectories.append(key)
+            }
             markParentDirectories(
                 absolutePath: key,
                 explorerRoot: normalizedKeyRoot,
@@ -106,7 +187,7 @@ struct GitStatusProvider: Sendable {
                 in: &statusMap
             )
         }
-        return statusMap
+        return Result(statusByPath: statusMap, untrackedDirectories: untrackedDirectories)
     }
 
     private func parseStatusChars(index: Character, workTree: Character) -> GitFileStatus? {

@@ -2212,6 +2212,7 @@
 		FE5996080000000000000002 /* FileExplorerExternalOpenMenuItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5996080000000000000001 /* FileExplorerExternalOpenMenuItems.swift */; };
 		FE5996090000000000000002 /* FileExplorerExternalOpenRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5996090000000000000001 /* FileExplorerExternalOpenRequest.swift */; };
 		FE002112 /* FileExplorerGitStatusProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE002012 /* FileExplorerGitStatusProviderTests.swift */; };
+		A31EEF6EA0B957D8ED3845AA /* FileExplorerGitStatusWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2800E33BFD6C40F91FE350B8 /* FileExplorerGitStatusWatcher.swift */; };
 		FE5996020000000000000002 /* FileExplorerHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5996020000000000000001 /* FileExplorerHeaderView.swift */; };
 		FE001105 /* FileExplorerKeyboardShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE001005 /* FileExplorerKeyboardShortcuts.swift */; };
 		9860F0029860F0029860F002 /* FileExplorerNativeDragOwnershipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9860F0039860F0039860F003 /* FileExplorerNativeDragOwnershipTests.swift */; };
@@ -3724,6 +3725,22 @@
 		F87920000000000000000001 /* SocketReloadConfigurationWaiterAdmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = F87920000000000000000002 /* SocketReloadConfigurationWaiterAdmission.swift */; };
 		F87920000000000000000003 /* SocketReloadConfigurationWaiterLease.swift in Sources */ = {isa = PBXBuildFile; fileRef = F87920000000000000000004 /* SocketReloadConfigurationWaiterLease.swift */; };
 		93300001A1B2C3D4E5F60718 /* SocketTerminalBindingRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93300002A1B2C3D4E5F60718 /* SocketTerminalBindingRegressionTests.swift */; };
+		8B026D1E24AEB29D76F2594B /* SourceControlBranchInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2001E134DF227528BA4B429B /* SourceControlBranchInfo.swift */; };
+		E8ADF0DCDBF247CCEFB86B37 /* SourceControlChangeGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634D23F4587FAFB7C66D85AD /* SourceControlChangeGroup.swift */; };
+		EED7581ADE2269A1BEBE3497 /* SourceControlDiffLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F4F2CECAC21A08F5E3DE30 /* SourceControlDiffLauncher.swift */; };
+		1089E65E6AF280748F6AC84C /* SourceControlDiffPreviewTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4124B89E530B181FEF383B7 /* SourceControlDiffPreviewTracker.swift */; };
+		3BE61BB5000CE30C275EE3DA /* SourceControlDiffRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3818EDFE5EF702850D6BE2AE /* SourceControlDiffRequest.swift */; };
+		666250CF92DD59DFC916BA4B /* SourceControlFileChange+Appearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F69D1D9F555B2E93DA0CDB0 /* SourceControlFileChange+Appearance.swift */; };
+		90F0728E0B10FC0E9688E0F8 /* SourceControlFileChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = B209C60BF4D6BEA484C17007 /* SourceControlFileChange.swift */; };
+		F47F0167104C7E658CF427CE /* SourceControlFileRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FFDAD0E4D243EC844E6072 /* SourceControlFileRow.swift */; };
+		1CFC7234C692261765977E1B /* SourceControlGitClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30157DC0944E341C18211C0 /* SourceControlGitClient.swift */; };
+		6425E2288A585B8FEA6DDC98 /* SourceControlGroupHeaderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977B7C2923C2A35BE863BE6F /* SourceControlGroupHeaderRow.swift */; };
+		DB24D04122D629C715488D16 /* SourceControlPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F175F95A81217A6E33FC2A /* SourceControlPanelView.swift */; };
+		F9C74F1127E35E825829BB7C /* SourceControlRepositoryHeaderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35D22BE0DDFF3AC4D02E1147 /* SourceControlRepositoryHeaderRow.swift */; };
+		1AA9D07423E1D0E667B706FA /* SourceControlRepositoryMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CAC3DBE362E1BEF716DAF3D /* SourceControlRepositoryMemory.swift */; };
+		B130361B63DFC4355F23759B /* SourceControlRepositorySnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381C192E7C5387864204240A /* SourceControlRepositorySnapshot.swift */; };
+		7052AAFFA3575FA14B89A738 /* SourceControlStatusParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A951AE216C2A160A71D4A657 /* SourceControlStatusParser.swift */; };
+		58D8557D78A009CE0E812E9B /* SourceControlStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E163BCF61F0CED46EB0693B9 /* SourceControlStore.swift */; };
 		A5001230 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A5001231 /* Sparkle */; };
 		A6AC72050000000000000001 /* SpinnerCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AC72050000000000000002 /* SpinnerCard.swift */; };
 		A6AC72090000000000000001 /* SpinnerEnergy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AC72090000000000000002 /* SpinnerEnergy.swift */; };
@@ -6916,6 +6933,7 @@
 		FE5996080000000000000001 /* FileExplorerExternalOpenMenuItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerExternalOpenMenuItems.swift; sourceTree = "<group>"; };
 		FE5996090000000000000001 /* FileExplorerExternalOpenRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerExternalOpenRequest.swift; sourceTree = "<group>"; };
 		FE002012 /* FileExplorerGitStatusProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerGitStatusProviderTests.swift; sourceTree = "<group>"; };
+		2800E33BFD6C40F91FE350B8 /* FileExplorerGitStatusWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerGitStatusWatcher.swift; sourceTree = "<group>"; };
 		FE5996020000000000000001 /* FileExplorerHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerHeaderView.swift; sourceTree = "<group>"; };
 		FE001005 /* FileExplorerKeyboardShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerKeyboardShortcuts.swift; sourceTree = "<group>"; };
 		9860F0039860F0039860F003 /* FileExplorerNativeDragOwnershipTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerNativeDragOwnershipTests.swift; sourceTree = "<group>"; };
@@ -8406,6 +8424,22 @@
 		F87920000000000000000002 /* SocketReloadConfigurationWaiterAdmission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketReloadConfigurationWaiterAdmission.swift; sourceTree = "<group>"; };
 		F87920000000000000000004 /* SocketReloadConfigurationWaiterLease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketReloadConfigurationWaiterLease.swift; sourceTree = "<group>"; };
 		93300002A1B2C3D4E5F60718 /* SocketTerminalBindingRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketTerminalBindingRegressionTests.swift; sourceTree = "<group>"; };
+		2001E134DF227528BA4B429B /* SourceControlBranchInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlBranchInfo.swift; sourceTree = "<group>"; };
+		634D23F4587FAFB7C66D85AD /* SourceControlChangeGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlChangeGroup.swift; sourceTree = "<group>"; };
+		D8F4F2CECAC21A08F5E3DE30 /* SourceControlDiffLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlDiffLauncher.swift; sourceTree = "<group>"; };
+		F4124B89E530B181FEF383B7 /* SourceControlDiffPreviewTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlDiffPreviewTracker.swift; sourceTree = "<group>"; };
+		3818EDFE5EF702850D6BE2AE /* SourceControlDiffRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlDiffRequest.swift; sourceTree = "<group>"; };
+		6F69D1D9F555B2E93DA0CDB0 /* SourceControlFileChange+Appearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceControlFileChange+Appearance.swift"; sourceTree = "<group>"; };
+		B209C60BF4D6BEA484C17007 /* SourceControlFileChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlFileChange.swift; sourceTree = "<group>"; };
+		A2FFDAD0E4D243EC844E6072 /* SourceControlFileRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlFileRow.swift; sourceTree = "<group>"; };
+		A30157DC0944E341C18211C0 /* SourceControlGitClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlGitClient.swift; sourceTree = "<group>"; };
+		977B7C2923C2A35BE863BE6F /* SourceControlGroupHeaderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlGroupHeaderRow.swift; sourceTree = "<group>"; };
+		04F175F95A81217A6E33FC2A /* SourceControlPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlPanelView.swift; sourceTree = "<group>"; };
+		35D22BE0DDFF3AC4D02E1147 /* SourceControlRepositoryHeaderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlRepositoryHeaderRow.swift; sourceTree = "<group>"; };
+		1CAC3DBE362E1BEF716DAF3D /* SourceControlRepositoryMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlRepositoryMemory.swift; sourceTree = "<group>"; };
+		381C192E7C5387864204240A /* SourceControlRepositorySnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlRepositorySnapshot.swift; sourceTree = "<group>"; };
+		A951AE216C2A160A71D4A657 /* SourceControlStatusParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlStatusParser.swift; sourceTree = "<group>"; };
+		E163BCF61F0CED46EB0693B9 /* SourceControlStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlStore.swift; sourceTree = "<group>"; };
 		A6AC72050000000000000002 /* SpinnerCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerCard.swift; sourceTree = "<group>"; };
 		A6AC72090000000000000002 /* SpinnerEnergy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerEnergy.swift; sourceTree = "<group>"; };
 		5B11E5A100000000000000A2 /* SpinnerGalleryDebugWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerGalleryDebugWindowController.swift; sourceTree = "<group>"; };
@@ -12689,6 +12723,23 @@
 				D4D9700C7689786CCDB82CAE /* TerminalController+AgentMessageClaim.swift */,
 				17A22999A4C0E113B255C2E7 /* NotificationsPopoverView.swift */,
 				067ED4C318664E11B67921F3 /* AppDelegate+NotificationsPopoverDigits.swift */,
+				2001E134DF227528BA4B429B /* SourceControlBranchInfo.swift */,
+				634D23F4587FAFB7C66D85AD /* SourceControlChangeGroup.swift */,
+				D8F4F2CECAC21A08F5E3DE30 /* SourceControlDiffLauncher.swift */,
+				3818EDFE5EF702850D6BE2AE /* SourceControlDiffRequest.swift */,
+				6F69D1D9F555B2E93DA0CDB0 /* SourceControlFileChange+Appearance.swift */,
+				B209C60BF4D6BEA484C17007 /* SourceControlFileChange.swift */,
+				A2FFDAD0E4D243EC844E6072 /* SourceControlFileRow.swift */,
+				A30157DC0944E341C18211C0 /* SourceControlGitClient.swift */,
+				977B7C2923C2A35BE863BE6F /* SourceControlGroupHeaderRow.swift */,
+				04F175F95A81217A6E33FC2A /* SourceControlPanelView.swift */,
+				35D22BE0DDFF3AC4D02E1147 /* SourceControlRepositoryHeaderRow.swift */,
+				1CAC3DBE362E1BEF716DAF3D /* SourceControlRepositoryMemory.swift */,
+				381C192E7C5387864204240A /* SourceControlRepositorySnapshot.swift */,
+				A951AE216C2A160A71D4A657 /* SourceControlStatusParser.swift */,
+				E163BCF61F0CED46EB0693B9 /* SourceControlStore.swift */,
+				2800E33BFD6C40F91FE350B8 /* FileExplorerGitStatusWatcher.swift */,
+				F4124B89E530B181FEF383B7 /* SourceControlDiffPreviewTracker.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -16249,6 +16300,7 @@
 				FEAC00000000000000000003 /* FileExplorerError+Mutation.swift in Sources */,
 				FE5996080000000000000002 /* FileExplorerExternalOpenMenuItems.swift in Sources */,
 				FE5996090000000000000002 /* FileExplorerExternalOpenRequest.swift in Sources */,
+				A31EEF6EA0B957D8ED3845AA /* FileExplorerGitStatusWatcher.swift in Sources */,
 				FE5996020000000000000002 /* FileExplorerHeaderView.swift in Sources */,
 				FE001105 /* FileExplorerKeyboardShortcuts.swift in Sources */,
 				FE5996030000000000000002 /* FileExplorerNSOutlineView.swift in Sources */,
@@ -17210,6 +17262,22 @@
 					A5001226 /* SocketControlMode+Display.swift in Sources */,
 				F87920000000000000000001 /* SocketReloadConfigurationWaiterAdmission.swift in Sources */,
 				F87920000000000000000003 /* SocketReloadConfigurationWaiterLease.swift in Sources */,
+				8B026D1E24AEB29D76F2594B /* SourceControlBranchInfo.swift in Sources */,
+				E8ADF0DCDBF247CCEFB86B37 /* SourceControlChangeGroup.swift in Sources */,
+				EED7581ADE2269A1BEBE3497 /* SourceControlDiffLauncher.swift in Sources */,
+				1089E65E6AF280748F6AC84C /* SourceControlDiffPreviewTracker.swift in Sources */,
+				3BE61BB5000CE30C275EE3DA /* SourceControlDiffRequest.swift in Sources */,
+				666250CF92DD59DFC916BA4B /* SourceControlFileChange+Appearance.swift in Sources */,
+				90F0728E0B10FC0E9688E0F8 /* SourceControlFileChange.swift in Sources */,
+				F47F0167104C7E658CF427CE /* SourceControlFileRow.swift in Sources */,
+				1CFC7234C692261765977E1B /* SourceControlGitClient.swift in Sources */,
+				6425E2288A585B8FEA6DDC98 /* SourceControlGroupHeaderRow.swift in Sources */,
+				DB24D04122D629C715488D16 /* SourceControlPanelView.swift in Sources */,
+				F9C74F1127E35E825829BB7C /* SourceControlRepositoryHeaderRow.swift in Sources */,
+				1AA9D07423E1D0E667B706FA /* SourceControlRepositoryMemory.swift in Sources */,
+				B130361B63DFC4355F23759B /* SourceControlRepositorySnapshot.swift in Sources */,
+				7052AAFFA3575FA14B89A738 /* SourceControlStatusParser.swift in Sources */,
+				58D8557D78A009CE0E812E9B /* SourceControlStore.swift in Sources */,
 					A6AC72050000000000000001 /* SpinnerCard.swift in Sources */,
 					A6AC72090000000000000001 /* SpinnerEnergy.swift in Sources */,
 					5B11E5A100000000000000A1 /* SpinnerGalleryDebugWindowController.swift in Sources */,

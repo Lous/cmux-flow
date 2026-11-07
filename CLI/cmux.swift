@@ -23383,13 +23383,13 @@ struct CMUXCLI {
               show                           Show the right sidebar
               hide                           Hide the right sidebar
               focus                          Focus the current right sidebar mode
-              set <files|find|vault|sessions|feed|dock|cloud|devices|custom> [sidebar-name]
+              set <files|find|vault|sessions|feed|dock|cloud|devices|git|custom> [sidebar-name]
                                              Show, switch mode, and focus. `custom`
                                              renders a JS/Swift sidebar from
                                              ~/.config/cmux/sidebars as a right panel;
                                              the optional name picks which one.
               mode                           Print {"visible":bool,"mode":string}
-              files|find|vault|sessions|feed|dock|cloud|devices|custom
+              files|find|vault|sessions|feed|dock|cloud|devices|git|custom
                                              Alias for show + set + focus
 
             Flags:
@@ -24389,7 +24389,7 @@ struct CMUXCLI {
             }
             return args
 
-        case "files", "find", "vault", "sessions", "feed", "dock", "cloud", "machines", "devices", "custom", "custom-sidebar":
+        case "files", "find", "vault", "sessions", "feed", "dock", "cloud", "machines", "devices", "git", "source-control", "scm", "changes", "custom", "custom-sidebar":
             guard parsed.positional.count == 1 else {
                 throw CLIError(message: String(localized: "cli.rightSidebar.error.unexpectedArguments", defaultValue: "right-sidebar \(action) received unexpected arguments"))
             }

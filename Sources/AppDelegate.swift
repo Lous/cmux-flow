@@ -854,6 +854,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private(set) var cloudMachinePinStore: CloudMachinePinStore?
     /// "Introducing cmux cloud", shown once from the first main window.
     private(set) lazy var cloudWelcomeWindowController = CloudWelcomeWindowController()
+    /// Repositories each workspace's Source Control panel has found this session.
+    private(set) lazy var sourceControlRepositoryMemory = SourceControlRepositoryMemory()
+    /// The preview diff tab a Source Control file click reuses, per workspace.
+    private(set) lazy var sourceControlDiffPreviewTracker = SourceControlDiffPreviewTracker()
     private(set) lazy var cloudActivationCoordinator = CloudActivationCoordinator(prepare: { try await CmuxTuiSurfaceProviderRegistry.shared.prepareForActivation() }, cleanup: { await CmuxTuiSurfaceProviderRegistry.shared.cancelActivationPreparation() }, analytics: .app)
     var cloudWorkspaceCoordinator: CloudWorkspaceCoordinator?
     var cloudWorkspaceOperationController: CloudWorkspaceOperationController?
@@ -7368,14 +7372,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         surfaceId: UUID?,
         useLastTurnSource: Bool,
         sessionId: String?,
-        focus: Bool = true
+        focus: Bool = true,
+        sourceArguments: [String]? = nil,
+        globalArguments: [String] = [],
+        onExit: (@MainActor (_ status: Int32, _ output: String) -> Void)? = nil
     ) -> Bool {
         let process = Process()
         process.executableURL = cliURL
-        var arguments = [
-            "--socket", socketPath,
-            "diff",
-            useLastTurnSource ? "--last-turn" : "--unstaged",
+        // `sourceArguments` replaces the default source flag, e.g. `--staged`,
+        // `--branch`, or a patch file path plus `--title` (Source Control panel).
+        // `globalArguments` precede the command (e.g. `--id-format uuids`), and
+        // `onExit` receives the CLI's output, which names the opened surface.
+        let sourceFlags = sourceArguments ?? [useLastTurnSource ? "--last-turn" : "--unstaged"]
+        var arguments = ["--socket", socketPath] + globalArguments + ["diff"] + sourceFlags + [
             "--cwd", cwd,
             "--workspace", workspaceId.uuidString,
             "--focus", focus ? "true" : "false",
@@ -7410,6 +7419,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let terminationStatus = terminatedProcess.terminationStatus
             Task { @MainActor in
                 AppDelegate.shared?.diffViewerProcesses.removeValue(forKey: processIdentifier)
+                onExit?(terminationStatus, output)
                 guard terminationStatus != 0 else { return }
 #if DEBUG
                 // Log only non-sensitive metadata: the child's stdout/stderr can echo

@@ -27,7 +27,7 @@ struct FileExplorerPalette {
         addedText: teal,
         deletedText: red,
         renamedText: purple,
-        untrackedText: neutral
+        untrackedText: green
     )
 
     static let highDensity = FileExplorerPalette(
@@ -37,7 +37,7 @@ struct FileExplorerPalette {
         addedText: green,
         deletedText: red,
         renamedText: blue,
-        untrackedText: neutral
+        untrackedText: green
     )
 
     static let terminalStealth = FileExplorerPalette(
@@ -47,7 +47,7 @@ struct FileExplorerPalette {
         addedText: terminalAdded,
         deletedText: terminalDeleted,
         renamedText: terminalRenamed,
-        untrackedText: terminalUntracked
+        untrackedText: terminalAdded
     )
 
     static let proStudio = FileExplorerPalette(
@@ -57,7 +57,7 @@ struct FileExplorerPalette {
         addedText: green,
         deletedText: pink,
         renamedText: cyan,
-        untrackedText: neutral
+        untrackedText: green
     )
 
     static let finder = FileExplorerPalette(
@@ -67,7 +67,7 @@ struct FileExplorerPalette {
         addedText: green,
         deletedText: red,
         renamedText: blue,
-        untrackedText: neutral
+        untrackedText: green
     )
 
     private static let orange = dynamicColor(
@@ -141,12 +141,6 @@ struct FileExplorerPalette {
         light: (0x13, 0x3E, 0x68),
         dark: (0x8D, 0xB9, 0xE5)
     )
-    private static let terminalUntracked = dynamicColor(
-        name: "terminal.status.untracked",
-        light: (0x3C, 0x3C, 0x3C),
-        dark: (0xB0, 0xB0, 0xB0)
-    )
-
     private static let neutralIcon = dynamicColor(
         name: "icon.neutral",
         light: (0x57, 0x57, 0x57),

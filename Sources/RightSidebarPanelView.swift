@@ -30,7 +30,7 @@ enum FileExplorerRootSyncPolicy {
         switch mode {
         case .files, .find:
             return true
-        case .sessions, .feed, .dock, .machines, .customSidebar:
+        case .sessions, .feed, .dock, .machines, .sourceControl, .customSidebar:
             return false
         }
     }
@@ -111,6 +111,11 @@ struct RightSidebarPanelView: View {
     // new items.
     private var feedPendingCount: Int {
         FeedCoordinator.shared.store?.pending.count ?? 0
+    }
+
+    /// Repositories found per workspace; the app delegate keeps them across panel remounts.
+    private var sourceControlRepositoryMemory: SourceControlRepositoryMemory {
+        AppDelegate.shared?.sourceControlRepositoryMemory ?? SourceControlRepositoryMemory()
     }
 
     private var featureAvailableModes: [RightSidebarMode] {
@@ -487,6 +492,16 @@ struct RightSidebarPanelView: View {
                     teamPickerPresentation: fileExplorerState.cloudTeamPickerPresentation,
                     activationCoordinator: cloudActivationCoordinator,
                     coderouterStore: tabManager.coderouterAccountStore
+                )
+            case .sourceControl:
+                SourceControlPanelView(
+                    workspace: tabManager.selectedWorkspace,
+                    memory: sourceControlRepositoryMemory,
+                    onOpenDiff: { request in
+                        guard let workspace = tabManager.selectedWorkspace else { return }
+                        SourceControlDiffLauncher().open(request, in: workspace)
+                    },
+                    onOpenFile: onOpenFilePreview
                 )
             case .customSidebar:
                 customSidebarPanel

@@ -19,6 +19,8 @@ extension RightSidebarMode {
             return .machines
         case "devices", "device", "macs":
             return .machines
+        case "git", "source-control", "scm", "changes":
+            return .sourceControl
         case "custom", "custom-sidebar":
             return .customSidebar
         default:
@@ -97,7 +99,7 @@ extension RightSidebarMode {
         devicesEnabled: Bool = false
     ) -> Bool {
         switch self {
-        case .files, .find, .sessions:
+        case .files, .find, .sessions, .sourceControl:
             return true
         case .feed:
             return feedEnabled

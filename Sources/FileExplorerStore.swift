@@ -1163,7 +1163,37 @@ final class FileExplorerStore: ObservableObject {
     @Published var rootPath: String = ""
     @Published var rootNodes: [FileExplorerNode] = []
     @Published private(set) var isRootLoading: Bool = false
-    @Published private(set) var gitStatusByPath: [String: GitFileStatus] = [:]
+    /// Not @Published: a git-only change repaints visible rows through
+    /// ``observeGitDecorations(owner:_:)`` instead of reloading the outline.
+    private(set) var gitStatusByPath: [String: GitFileStatus] = [:]
+    /// Directories Git reported as wholly untracked; their contents are untracked too.
+    private(set) var gitUntrackedDirectories: [String] = []
+    /// Bumped whenever git decorations change, so the outline repaints visible
+    /// rows' decorations only then and never during ordinary navigation.
+    private(set) var gitDecorationRevision = 0
+    private var gitDecorationObservers: [GitDecorationObserver] = []
+
+    /// A view that repaints rows when git decorations change.
+    private struct GitDecorationObserver {
+        weak var owner: AnyObject?
+        let handler: @MainActor () -> Void
+    }
+
+    /// Calls `handler` after git decorations change. Held only while `owner` lives;
+    /// registering again for the same owner replaces its handler.
+    func observeGitDecorations(owner: AnyObject, _ handler: @escaping @MainActor () -> Void) {
+        gitDecorationObservers.removeAll { $0.owner == nil || $0.owner === owner }
+        gitDecorationObservers.append(GitDecorationObserver(owner: owner, handler: handler))
+    }
+
+    private func notifyGitDecorationObservers() {
+        gitDecorationObservers.removeAll { $0.owner == nil }
+        for observer in gitDecorationObservers {
+            observer.handler()
+        }
+    }
+    /// Re-reads git status when files change anywhere inside the root's repositories.
+    private let gitStatusWatcher = FileExplorerGitStatusWatcher()
     @Published private(set) var contentRevision = 0
     @Published private(set) var rootStatusMessage: String?
     private(set) var workspaceRootIdentity: UUID?
@@ -1288,8 +1318,20 @@ final class FileExplorerStore: ObservableObject {
         if !preservingNavigation {
             selectedPath = nil; selectedPaths = []; expandedPaths = []
         }
-        rootNodes = []; nodesByPath = [:]; gitStatusByPath = [:]
+        rootNodes = []; nodesByPath = [:]; gitUntrackedDirectories = []; gitStatusByPath = [:]
+        gitDecorationRevision &+= 1
         contentRevision &+= 1
+    }
+
+    /// Git decoration for an explorer path, including files inside an untracked folder.
+    func gitStatus(forPath path: String) -> GitFileStatus? {
+        if let status = gitStatusByPath[path] {
+            return status
+        }
+        for directory in gitUntrackedDirectories where path.hasPrefix(directory + "/") {
+            return .untracked
+        }
+        return nil
     }
 
     func setRootPath(_ path: String) {
@@ -1320,20 +1362,44 @@ final class FileExplorerStore: ObservableObject {
         let context = resourceContextID, source = gitStatusProvider
         guard !path.isEmpty, provider?.isAvailable == true,
               provider is LocalFileExplorerProvider || provider is SSHFileExplorerProvider else {
+            gitStatusWatcher.stop()
+            let hadDecorations = !gitStatusByPath.isEmpty || !gitUntrackedDirectories.isEmpty
+            gitUntrackedDirectories = []
             gitStatusByPath = [:]
+            if hadDecorations {
+                gitDecorationRevision &+= 1
+                notifyGitDecorationObservers()
+            }
             return
         }
         let connection = (provider as? SSHFileExplorerProvider)?.connection
+        if connection != nil {
+            gitStatusWatcher.stop()
+        }
         Task { [weak self] in
-            let status = await Task.detached(priority: .utility) {
+            let result = await Task.detached(priority: .utility) {
                 if let connection {
-                    return source.fetchStatusSSH(directory: path, destination: connection.destination,
-                        port: connection.port, identityFile: connection.identityFile, sshOptions: connection.sshOptions)
+                    return GitStatusProvider.Result(statusByPath: source.fetchStatusSSH(directory: path,
+                        destination: connection.destination, port: connection.port,
+                        identityFile: connection.identityFile, sshOptions: connection.sshOptions))
                 }
-                return source.fetchStatus(directory: path)
+                return source.fetchStatusResult(directory: path)
             }.value
             guard let self, self.gitStatusGeneration == generation, self.resourceContextID == context else { return }
-            self.gitStatusByPath = status
+            // Set before the published map so the outline reload sees both, and skip
+            // identical results so watcher-driven refreshes do not reload the outline.
+            if self.gitUntrackedDirectories != result.untrackedDirectories
+                || self.gitStatusByPath != result.statusByPath {
+                self.gitUntrackedDirectories = result.untrackedDirectories
+                self.gitStatusByPath = result.statusByPath
+                self.gitDecorationRevision &+= 1
+                self.notifyGitDecorationObservers()
+            }
+            if connection == nil {
+                self.gitStatusWatcher.watch(repositoryRoots: result.repositoryRoots) { [weak self] in
+                    self?.refreshGitStatus()
+                }
+            }
         }
     }
 

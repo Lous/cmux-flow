@@ -103,6 +103,7 @@ struct FileExplorerPanelView: NSViewRepresentable {
         weak var outlineView: NSOutlineView?
         private var lastRootNodeCount: Int = -1
         private var lastContentRevision: Int = -1
+        private var lastGitDecorationRevision: Int = -1
         private var observationCancellable: AnyCancellable?
         private var styleObserver: Any?
         private var isUpdatingOutlineProgrammatically = false
@@ -186,6 +187,11 @@ struct FileExplorerPanelView: NSViewRepresentable {
         }
 
         private func observeStore() {
+            // Git-only changes repaint visible rows without reloading the outline.
+            store.observeGitDecorations(owner: self) { [weak self] in
+                guard let self, let outlineView = self.outlineView else { return }
+                self.refreshVisibleGitDecorationsIfNeeded(in: outlineView)
+            }
             observationCancellable = store.objectWillChange
                 .debounce(for: .milliseconds(50), scheduler: RunLoop.main)
                 .sink { [weak self] _ in
@@ -274,6 +280,28 @@ struct FileExplorerPanelView: NSViewRepresentable {
                     }
                 }
             }
+            refreshVisibleGitDecorationsIfNeeded(in: outlineView)
+        }
+
+        /// Re-applies git decorations to the rows on screen after git status
+        /// changes. The reloads above only cover expanded folders, so without
+        /// this a status that arrives after the tree is shown never reaches
+        /// top-level files or collapsed folders. Gated on the store's decoration
+        /// revision and limited to color and badge, so navigating the tree
+        /// (expand, select, hover prefetch) costs nothing extra.
+        private func refreshVisibleGitDecorationsIfNeeded(in outlineView: NSOutlineView) {
+            let revision = store.gitDecorationRevision
+            guard revision != lastGitDecorationRevision else { return }
+            lastGitDecorationRevision = revision
+            let visibleRows = outlineView.rows(in: outlineView.visibleRect)
+            guard visibleRows.length > 0 else { return }
+            for row in visibleRows.location..<(visibleRows.location + visibleRows.length) {
+                guard let node = outlineView.item(atRow: row) as? FileExplorerNode,
+                      let cellView = outlineView.view(atColumn: 0, row: row, makeIfNecessary: false) as? FileExplorerCellView else {
+                    continue
+                }
+                cellView.updateGitDecoration(gitStatus: store.gitStatus(forPath: node.path), isDirectory: node.isDirectory)
+            }
         }
 
         // MARK: - NSOutlineViewDataSource
@@ -315,7 +343,7 @@ struct FileExplorerPanelView: NSViewRepresentable {
                 cellView = FileExplorerCellView(identifier: identifier)
             }
 
-            let gitStatus = store.gitStatusByPath[node.path]
+            let gitStatus = store.gitStatus(forPath: node.path)
             cellView.configure(with: node, gitStatus: gitStatus)
             cellView.onHover = { [weak self] isHovering in
                 guard let self else { return }
