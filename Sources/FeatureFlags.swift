@@ -1,3 +1,4 @@
+import CmuxFoundation
 import CMUXMobileCore
 import CmuxSettings
 import Foundation
@@ -507,6 +508,13 @@ final class CmuxFeatureFlags {
         }
         if let remoteFlagLoader {
             self.remoteFlagLoader = remoteFlagLoader
+        } else if !SentryBuildIdentityPolicy(
+            bundleIdentifier: Bundle.main.bundleIdentifier,
+            trustedBaseBundleIdentifier: SocketPathMarkerFiles.stableBundleIdentifier
+        ).allowsTelemetry {
+            // A rebranded fork must not poll cmux's PostHog flag control plane;
+            // every flag resolves to its local default instead.
+            self.remoteFlagLoader = { nil }
         } else {
             let target = Self.releaseControlTarget(
                 telemetryEnabled: telemetryEnabled,

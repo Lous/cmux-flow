@@ -1,3 +1,4 @@
+import CmuxFoundation
 import CmuxSettings
 import AppKit
 import Foundation
@@ -37,6 +38,10 @@ final class PostHogAnalytics: @unchecked Sendable {
     private let contextCalls: PostHogContextCalls
     private let environment: [String: String]
     private let telemetryEnabled: @Sendable () -> Bool
+    /// Whether this build identifies as cmux. The project key above is public,
+    /// so a rebranded fork built from this source would otherwise report into
+    /// cmux's analytics; the same rule already gates Sentry.
+    private let allowsBuildIdentity: Bool
     private let previousLaunchIdentity: [String: Any]
     private let launchStartedAt: Date
 
@@ -57,8 +62,13 @@ final class PostHogAnalytics: @unchecked Sendable {
         flushPostHog: @escaping @Sendable () -> Void = { PostHogSDK.shared.flush() },
         contextCalls: PostHogContextCalls = .live,
         environment: [String: String] = ProcessInfo.processInfo.environment,
-        telemetryEnabled: @escaping @Sendable () -> Bool = { TelemetrySettings.enabledForCurrentLaunch }
+        telemetryEnabled: @escaping @Sendable () -> Bool = { TelemetrySettings.enabledForCurrentLaunch },
+        allowsBuildIdentity: Bool = SentryBuildIdentityPolicy(
+            bundleIdentifier: Bundle.main.bundleIdentifier,
+            trustedBaseBundleIdentifier: SocketPathMarkerFiles.stableBundleIdentifier
+        ).allowsTelemetry
     ) {
+        self.allowsBuildIdentity = allowsBuildIdentity
         self.workQueue = workQueue
         self.didStart = didStart
         self.userDefaults = userDefaults
@@ -82,6 +92,7 @@ final class PostHogAnalytics: @unchecked Sendable {
             return false
         }
         guard telemetryEnabled() else { return false }
+        guard allowsBuildIdentity else { return false }
 #if DEBUG
         // Avoid polluting production analytics while iterating locally.
         return environment["CMUX_POSTHOG_ENABLE"] == "1"

@@ -14,6 +14,9 @@ public enum SocketPathVariant: Equatable, Sendable {
     case staging(slug: String?)
     /// A local debug/dev build, optionally tag-scoped by `slug`.
     case dev(slug: String?)
+    /// A rebranded fork: a bundle identifier outside cmux's namespace, scoped by
+    /// the identifier's slug so it never claims the shipping app's stable socket.
+    case fork(slug: String)
 
     /// The marker file name (within ``CmuxStateDirectory``) that records this
     /// variant's last socket path.
@@ -41,6 +44,8 @@ public enum SocketPathVariant: Equatable, Sendable {
                 return "dev-\(slug)-last-socket-path"
             }
             return "dev-last-socket-path"
+        case .fork(let slug):
+            return "fork-\(slug)-last-socket-path"
         }
     }
 
@@ -69,6 +74,8 @@ public enum SocketPathVariant: Equatable, Sendable {
                 return "/tmp/cmux-dev-\(slug)-last-socket-path"
             }
             return "/tmp/cmux-dev-last-socket-path"
+        case .fork(let slug):
+            return "/tmp/cmux-fork-\(slug)-last-socket-path"
         }
     }
 

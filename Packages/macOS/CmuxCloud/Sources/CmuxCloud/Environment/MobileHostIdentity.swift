@@ -276,6 +276,8 @@ public enum MobileHostIdentity: Sendable {
             return slug ?? "staging"
         case .dev(let slug):
             return slug ?? "dev"
+        case .fork(let slug):
+            return slug
         }
     }
 

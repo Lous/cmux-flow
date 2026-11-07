@@ -162,6 +162,8 @@ public struct VMTunnelManager: Sendable {
             }
             let identity = rawTag.map { "\(effectiveBundleID)|\($0)" } ?? effectiveBundleID
             return scopedInterfaceName(prefix: "cmux-dev", identity: identity, hashLength: 6)
+        case .fork:
+            return scopedInterfaceName(prefix: "cmux-f", identity: effectiveBundleID, hashLength: 8)
         }
     }
 

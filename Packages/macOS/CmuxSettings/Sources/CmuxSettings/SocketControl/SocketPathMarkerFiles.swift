@@ -80,7 +80,24 @@ public enum SocketPathMarkerFiles {
         if bundleId.hasPrefix("\(baseDebugBundleIdentifier).") {
             return .dev(slug: bundleSuffixSlug(bundleId, prefix: "\(baseDebugBundleIdentifier)."))
         }
+        if let slug = forkSlug(bundleIdentifier: bundleId) {
+            return .fork(slug: slug)
+        }
         return .stable
+    }
+
+    /// The socket slug for a rebranded fork, or nil for cmux's own identities.
+    ///
+    /// A fork built from this public source under its own bundle identifier
+    /// must not claim the shipping app's stable socket or its discovery
+    /// markers, or the two apps would fight over one control socket. An empty
+    /// identifier (a bare CLI), cmux's own `com.cmuxterm.*` namespace, and
+    /// Apple tool hosts such as XCTest runners keep the stable defaults.
+    static func forkSlug(bundleIdentifier bundleId: String) -> String? {
+        guard !bundleId.isEmpty,
+              !bundleId.hasPrefix("com.cmuxterm."),
+              !bundleId.hasPrefix("com.apple.") else { return nil }
+        return sanitizeSocketSlug(bundleId)
     }
 
     public static func defaultSocketPath(
@@ -121,6 +138,8 @@ public enum SocketPathMarkerFiles {
                 return "/tmp/cmux-debug-\(slug).sock"
             }
             return debugSocketPath
+        case .fork(let slug):
+            return "/tmp/cmux-fork-\(slug).sock"
         }
     }
 

@@ -129,7 +129,7 @@ public final class UpdateController {
         self.defaults = defaults
         self.fileManager = fileManager
         self.hostBundle = hostBundle
-        let isDevLikeBundle = isDevLikeBundle ?? Self.isDevLikeBundleIdentifier(hostBundle.bundleIdentifier)
+        let isDevLikeBundle = isDevLikeBundle ?? Self.isOffReleaseTrainBundleIdentifier(hostBundle.bundleIdentifier)
         self.isDevLikeBundle = isDevLikeBundle
         settings.apply(to: defaults)
         if isDevLikeBundle {
@@ -396,6 +396,19 @@ extension UpdateController {
     /// `isStagingBundleIdentifier` (in the CmuxSettings package). The classification is
     /// duplicated here deliberately to avoid introducing a `CmuxUpdater → CmuxSettings` package
     /// dependency edge for a small string check.
+    /// Whether `bundleIdentifier` must never consult the public appcast: a DEV or
+    /// staging build, or a rebranded fork outside cmux's `com.cmuxterm.` namespace.
+    /// A fork is built from local source too, and installing a public cmux update
+    /// would silently replace it with the official app.
+    static func isOffReleaseTrainBundleIdentifier(_ bundleIdentifier: String?) -> Bool {
+        if isDevLikeBundleIdentifier(bundleIdentifier) {
+            return true
+        }
+        guard let bundleIdentifier = bundleIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !bundleIdentifier.isEmpty else { return false }
+        return !bundleIdentifier.hasPrefix("com.cmuxterm.")
+    }
+
     static func isDevLikeBundleIdentifier(_ bundleIdentifier: String?) -> Bool {
         guard let bundleIdentifier else { return false }
         return bundleIdentifier == "com.cmuxterm.app.debug"

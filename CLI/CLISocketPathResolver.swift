@@ -277,6 +277,16 @@ struct CLISocketPathResolver {
         // tag-specific socket; for the stable CLI it is the primary stable socket.
         candidates.append(ownDefaultPath)
 
+        // A rebranded fork's CLI only ever talks to its own app: falling back to
+        // the stable socket would drive an installed official cmux instead.
+        if case .fork = variant {
+            candidates.append(contentsOf: readLastSocketPaths(
+                bundleIdentifier: bundleIdentifier,
+                environment: environment
+            ))
+            return candidates
+        }
+
         // A dead dev socket must not strand ambient commands. The stable primary
         // socket is the deterministic machine-wide fallback before any marker.
         candidates.append(resolvedStableDefaultSocketPath)
@@ -326,6 +336,8 @@ struct CLISocketPathResolver {
         switch variant {
         case .stable:
             return true
+        case .fork:
+            return Self.pathsMatch(requestedPath, defaultPath)
         case .nightly, .rc, .staging, .dev:
             return Self.pathsMatch(requestedPath, defaultPath)
                 || !Self.containsPath(resolvedStableImplicitDefaultPaths(), requestedPath)
@@ -337,6 +349,9 @@ struct CLISocketPathResolver {
         switch variant {
         case .stable, .nightly, .rc, .staging, .dev:
             paths = resolvedStableImplicitDefaultPaths()
+        case .fork:
+            // Never fall back to the official app's stable sockets.
+            paths = []
         }
         // The legacy /tmp aliases are shared by every cmux running as this user.
         guard confinesDiscoveryToStateDirectory else { return paths }
