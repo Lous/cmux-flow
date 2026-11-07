@@ -23,13 +23,21 @@ an editor.
   - branch, ahead/behind, and staged / changes / merge-conflict entries with
     VS Code-style status letters and line counts;
   - live refresh as files change;
+  - stage, unstage and discard files from hover buttons or the context menu, or a
+    whole section at once; discarding asks first and moves new files to the Trash;
   - click a file to see its diff in a reusable preview tab, or open the whole working
     tree, staged changes, or the branch against its base.
+- **Diff viewer**:
+  - "Show in Files" on each file opens the Files tab with that file selected;
+  - diffs opened from the Git tab reopen with the new colors after a theme change, and
+    every diff keeps an opaque background so its colors stay readable;
+  - the line numbers stay solid while long lines scroll sideways.
 - **Git-aware Files explorer**:
   - git status for workspaces rooted at a folder of repositories;
   - status letters (M/A/D/R/U), a dot on changed folders, untracked files in green;
-  - live refresh, and a fix for decorations that never reached top-level rows or
-    collapsed folders when git status arrived after the tree was shown.
+  - live refresh without reloading the tree, so it no longer flickers while terminals
+    create or delete files, and a fix for decorations that never reached top-level
+    rows or collapsed folders when git status arrived after the tree was shown.
 
 ## How it differs from cmux
 
