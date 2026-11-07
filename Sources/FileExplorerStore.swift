@@ -1232,6 +1232,9 @@ final class FileExplorerStore: ObservableObject {
     /// Prefetch debounce schedulers keyed by path.
     private var prefetchSchedulers: [String: MainActorDeferredActionScheduler] = [:]
 
+    /// In-flight in-place root refresh (see ``refreshRootInPlace()``).
+    private var rootRefreshTask: Task<Void, Never>?
+
     var workspaceRootObservation: FileExplorerWorkspaceObservation?
     var remoteHomeResolutionTask: Task<Void, Never>?
     var remoteHomeResolutionKey: String?
@@ -1616,7 +1619,10 @@ final class FileExplorerStore: ObservableObject {
             directoryWatchTask = Task { @MainActor [weak self] in
                 for await _ in events {
                     guard let self else { break }
-                    self.reload()
+                    // Merge the new listing in place: a full reload empties the tree
+                    // and shows the loading state, which flashes on every file a
+                    // terminal or agent creates in the root.
+                    self.refreshRootInPlace()
                     self.refreshGitStatus()
                 }
             }
@@ -1726,6 +1732,78 @@ final class FileExplorerStore: ObservableObject {
             await self.loadChildren(for: nil, at: path)
         }
         loadTasks[rootPath] = task
+    }
+
+    /// Re-lists the root after an entry appears or disappears in it and merges the
+    /// listing into the current tree. Unlike ``reload()``, the tree is never emptied
+    /// and no loading state is shown, so a terminal or agent creating files in the
+    /// root no longer makes the whole tree flash. Nodes for entries that still exist
+    /// are kept, with their loaded children, expansion and selection.
+    func refreshRootInPlace() {
+        guard !rootPath.isEmpty, let provider, !isRootLoading, !rootNodes.isEmpty else {
+            reload()
+            return
+        }
+        let path = rootPath
+        let context = resourceContextID
+        let showHidden = showHiddenFiles
+        rootRefreshTask?.cancel()
+        rootRefreshTask = Task { [weak self] in
+            guard let entries = try? await provider.listDirectory(path: path, showHidden: showHidden),
+                  !Task.isCancelled,
+                  let self,
+                  self.rootPath == path,
+                  self.resourceContextID == context else { return }
+            self.mergeRootEntries(entries)
+        }
+    }
+
+    private func mergeRootEntries(_ entries: [FileExplorerEntry]) {
+        var existing: [String: FileExplorerNode] = [:]
+        for node in rootNodes {
+            existing[node.path] = node
+        }
+        var directoriesToReexpand: [FileExplorerNode] = []
+        let merged = entries.map { entry -> FileExplorerNode in
+            if let node = existing[entry.path], node.isDirectory == entry.isDirectory {
+                return node
+            }
+            let node = FileExplorerNode(name: entry.name, path: entry.path, isDirectory: entry.isDirectory)
+            node.resourceContextID = resourceContextID
+            nodesByPath[entry.path] = node
+            if node.isDirectory, expandedPaths.contains(node.path) {
+                directoriesToReexpand.append(node)
+            }
+            return node
+        }.sorted { a, b in
+            if a.isDirectory != b.isDirectory { return a.isDirectory }
+            return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+        }
+        // Nothing appeared or disappeared (a metadata-only change): leave the tree alone.
+        guard merged.map(\.path) != rootNodes.map(\.path) else { return }
+
+        let keptPaths = Set(merged.map(\.path))
+        let removedRoots = rootNodes.map(\.path).filter { !keptPaths.contains($0) }
+        if !removedRoots.isEmpty {
+            nodesByPath = nodesByPath.filter { path, _ in
+                !removedRoots.contains { path == $0 || path.hasPrefix($0 + "/") }
+            }
+            if let selectedPath, nodesByPath[selectedPath] == nil {
+                self.selectedPath = nil
+            }
+            selectedPaths = selectedPaths.filter { nodesByPath[$0] != nil }
+        }
+        rootNodes = merged
+        contentRevision &+= 1
+
+        for directory in directoriesToReexpand {
+            directory.isLoading = true
+            let directoryPath = directory.path
+            loadTasks[directoryPath] = Task { [weak self] in
+                guard let self else { return }
+                await self.loadChildren(for: directory, at: directoryPath)
+            }
+        }
     }
 
     func expand(node: FileExplorerNode) {
