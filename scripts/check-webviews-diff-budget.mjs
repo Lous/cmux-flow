@@ -27,7 +27,7 @@ function budgetFromEnvironment(name, fallback) {
   return value;
 }
 
-const lazyOnlyChunkPattern = /^chunks\/(shiki-lang-|shiki-theme-|shiki-wasm|pierre-theme-)/;
+const lazyOnlyChunkPattern = /^chunks\/(shiki-lang-|shiki-theme-|shiki-wasm|pierre-theme-|editor-|codemirror-editor)/;
 const surfaces = [
   {
     name: "diff surface",

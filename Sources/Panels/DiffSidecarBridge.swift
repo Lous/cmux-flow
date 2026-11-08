@@ -72,6 +72,7 @@ final class DiffSidecarBridge: NSObject, WKScriptMessageHandlerWithReply {
     static func installViewerBridges(on userContentController: WKUserContentController) {
         DiffCommentsBridge.installIfNeeded(on: userContentController)
         DiffRevealFileBridge.installIfNeeded(on: userContentController)
+        DiffEditBridge.installIfNeeded(on: userContentController)
         installIfNeeded(on: userContentController)
     }
 

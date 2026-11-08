@@ -36,6 +36,9 @@ import { deferredDiffReason, type DeferredDiffReason } from "./deferred-diffs";
 import { resolveDiffFileLanguage, resolveDiffPreloadLanguages } from "./diff-language";
 import { fileName, fileStats, type DiffItem, type FileTreeSource, type StreamMetrics, streamPatch } from "./diff-stream";
 import { DiffHeaderMetadata } from "./diff-metadata";
+import { activeDiffEditor } from "./edit/active-editor";
+import { diffEditBridgeAvailable, startLiveFileSession } from "./edit/bridge";
+import { LiveFileDiffEditor } from "./edit/LiveFileDiffEditor";
 import {
   allDiffFileStatuses,
   defaultDiffFileFilter,
@@ -434,6 +437,43 @@ function reducer(state: AppState, action: AppAction): AppState {
   }
 }
 
+type LiveFileSession = { kind: "pending" } | { kind: "none" } | { kind: "live"; path: string };
+
+/**
+ * Whether this page is a Source Control file tab, which renders as a live diff
+ * editor instead of the read-only diff. Resolves without Git work, so the
+ * read-only diff waits only a moment before it renders.
+ */
+function useLiveFileSession(dispatch: React.Dispatch<AppAction>): LiveFileSession {
+  const [session, setSession] = useState<LiveFileSession>(
+    diffEditBridgeAvailable() ? { kind: "pending" } : { kind: "none" },
+  );
+  useEffect(() => {
+    if (!diffEditBridgeAvailable()) {
+      return;
+    }
+    let cancelled = false;
+    startLiveFileSession()
+      .then((result) => {
+        if (cancelled) return;
+        if (result.live && result.path) {
+          // One file, like VS Code's diff editor: no file list beside it.
+          dispatch({ type: "set-files-visible", visible: false });
+          setSession({ kind: "live", path: result.path });
+        } else {
+          setSession({ kind: "none" });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSession({ kind: "none" });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch]);
+  return session;
+}
+
 export function App({ config, initialStatus }: ConfigProps) {
   const payload = config.payload ?? {};
   const label = useMemo(
@@ -455,6 +495,7 @@ export function App({ config, initialStatus }: ConfigProps) {
   const [activePatchURL, setActivePatchURL] = useState<string | undefined>(payload.patchURL);
   const [state, dispatch] = useReducer(reducer, initialAppState(config, initialStatus));
   const latestState = useSyncedRef(state);
+  const liveFile = useLiveFileSession(dispatch);
   const codeViewRef = useRef<CodeViewHandle<any> | null>(null);
   const codeViewScrollTopRef = useRef(0);
   const copyFallbackRef = useRef<HTMLTextAreaElement | null>(null);
@@ -824,7 +865,7 @@ export function App({ config, initialStatus }: ConfigProps) {
               requestToken={state.findRequest}
             />
           ) : null}
-          {state.items.length > 0 ? (
+          {state.items.length > 0 && liveFile.kind === "none" ? (
             <WorkerPoolContextProvider
               poolOptions={workerPoolOptions}
               highlighterOptions={highlighterOptions}
@@ -860,7 +901,17 @@ export function App({ config, initialStatus }: ConfigProps) {
             </WorkerPoolContextProvider>
           ) : null}
         </main>
-        <LoadingLayer label={label} status={state.status} />
+        {liveFile.kind === "live" ? (
+          <LiveFileDiffEditor
+            appearance={appearance}
+            label={label}
+            layout={state.options.layout}
+            path={liveFile.path}
+            wordWrap={state.options.wordWrap}
+          />
+        ) : (
+          <LoadingLayer label={label} status={state.status} />
+        )}
       </section>
       <textarea
         ref={copyFallbackRef}
@@ -2631,6 +2682,12 @@ function useNativeViewerNavigation(
 ) {
   useEffect(() => {
     window.__cmuxPerformDiffViewerNavigationAction = (action: string) => {
+      // A live file tab's editor owns find; file and hunk navigation have
+      // nothing to move there.
+      const editor = activeDiffEditor();
+      if (editor != null) {
+        return editor.performAction(action);
+      }
       const viewer = viewerRef.current;
       if (viewer && CmuxViewerNavigation.performAction(action, viewer)) {
         return true;

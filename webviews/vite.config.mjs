@@ -121,6 +121,32 @@ export default defineConfig({
           if (id.includes("/@pierre/")) {
             return "diff-vendor";
           }
+          // The file editor (CodeMirror) loads only when a file is edited, from
+          // `src/edit/codemirror-editor.ts`: its core is one lazy
+          // `editor-vendor` chunk and each language a lazy chunk of its own
+          // that `@codemirror/language-data` imports for the edited file.
+          const editorLanguage = id.match(/\/@codemirror\/lang-([^/]+)\//);
+          if (editorLanguage) {
+            return `editor-lang-${editorLanguage[1]}`;
+          }
+          const editorLegacyMode = id.match(/\/@codemirror\/legacy-modes\/mode\/([^/]+)\.js$/);
+          if (editorLegacyMode) {
+            return `editor-legacy-${editorLegacyMode[1]}`;
+          }
+          const editorGrammar = id.match(/\/@lezer\/(?!common\/|highlight\/|lr\/)([^/]+)\//);
+          if (editorGrammar) {
+            return `editor-lezer-${editorGrammar[1]}`;
+          }
+          if (
+            id.includes("/@codemirror/") ||
+            id.includes("/@lezer/") ||
+            id.includes("/@marijn/") ||
+            id.includes("/crelt/") ||
+            id.includes("/style-mod/") ||
+            id.includes("/w3c-keyname/")
+          ) {
+            return "editor-vendor";
+          }
           // Framework code both surfaces share. Pinning it to a stable `vendor`
           // chunk name keeps the shared chunk from being renamed (and rehashed)
           // whenever an unrelated shared module changes.

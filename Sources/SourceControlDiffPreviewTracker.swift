@@ -8,6 +8,8 @@ import Foundation
 /// - A diff viewer bakes the terminal theme's syntax colors in when it opens,
 ///   so after a theme change every tracked diff is reopened in place with the
 ///   new theme instead of keeping colors from the old one.
+/// - A diff tab with unsaved edits is kept: it stops being the preview (the
+///   next click opens a new one) and theme reloads skip it.
 @MainActor
 final class SourceControlDiffPreviewTracker {
     private struct OpenDiff {
@@ -17,6 +19,7 @@ final class SourceControlDiffPreviewTracker {
 
     private var previewPanelByWorkspace: [UUID: UUID] = [:]
     private var openDiffs: [UUID: OpenDiff] = [:]
+    private var editingPanels: Set<UUID> = []
     private var themeObservation: Task<Void, Never>?
     private var pendingThemeReopen: Task<Void, Never>?
     /// Theme reloads arrive in bursts (one per surface); reopen once they settle.
@@ -57,8 +60,35 @@ final class SourceControlDiffPreviewTracker {
         }
     }
 
+    /// The file a tracked single-file diff tab shows, as the panel opened it.
+    func trackedFile(forPanel panelId: UUID) -> (change: SourceControlFileChange, root: String)? {
+        guard case .file(let change, let root, _)? = openDiffs[panelId]?.request else { return nil }
+        return (change, root)
+    }
+
+    /// Closes a tracked single-file diff tab whose file has nothing left to show.
+    @discardableResult
+    func closeFileTab(panelId: UUID) -> Bool {
+        guard case .file? = openDiffs[panelId]?.request,
+              let workspace = openDiffs[panelId]?.workspace else { return false }
+        close(panelId, in: workspace)
+        return true
+    }
+
+    /// Marks a diff tab as holding unsaved edits, or not.
+    func setEditing(_ editing: Bool, panelId: UUID) {
+        guard editing else {
+            editingPanels.remove(panelId)
+            return
+        }
+        editingPanels.insert(panelId)
+        // Like VS Code, editing a preview pins it.
+        previewPanelByWorkspace = previewPanelByWorkspace.filter { $0.value != panelId }
+    }
+
     private func close(_ panelId: UUID, in workspace: Workspace) {
         openDiffs.removeValue(forKey: panelId)
+        editingPanels.remove(panelId)
         guard Self.isDiffViewer(panelId, in: workspace) else { return }
         _ = workspace.closePanel(panelId, force: true)
     }
@@ -68,6 +98,7 @@ final class SourceControlDiffPreviewTracker {
             guard let workspace = diff.workspace else { return false }
             return Self.isDiffViewer(panelId, in: workspace)
         }
+        editingPanels = editingPanels.filter { openDiffs[$0] != nil }
     }
 
     private static func isDiffViewer(_ panelId: UUID, in workspace: Workspace) -> Bool {
@@ -98,7 +129,7 @@ final class SourceControlDiffPreviewTracker {
     private func reopenTrackedDiffs() {
         pruneClosedDiffs()
         let launcher = SourceControlDiffLauncher()
-        for (panelId, diff) in openDiffs {
+        for (panelId, diff) in openDiffs where !editingPanels.contains(panelId) {
             guard let workspace = diff.workspace else { continue }
             launcher.open(diff.request, in: workspace, replacing: panelId)
         }

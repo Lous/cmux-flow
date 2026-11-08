@@ -27,6 +27,13 @@ an editor.
     whole section at once; discarding asks first and moves new files to the Trash;
   - click a file to see its diff in a reusable preview tab, or open the whole working
     tree, staged changes, or the branch against its base.
+- **Edit inside the diff**, the way VS Code's diff editor works:
+  - a file opened from the Git tab is editable right away (⌘S saves, ⌘Z undoes, ⌘F
+    finds, per-change revert); staged changes open read-only;
+  - the tab follows the file: agent edits appear in place, unstaging makes it
+    editable, and it closes when the file's changes are discarded or committed;
+  - unsaved edits mark the tab, keep it from being replaced, and ask before it
+    closes; saving over a file that changed on disk asks to reload or overwrite.
 - **Diff viewer**:
   - "Show in Files" on each file opens the Files tab with that file selected;
   - diffs opened from the Git tab reopen with the new colors after a theme change, and

@@ -2064,6 +2064,14 @@
 		D1FFC0DE000000000000A002 /* DiffCommentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1FFC0DE000000000000A001 /* DiffCommentStore.swift */; };
 		D1FFC0DE000000000000C002 /* DiffCommentStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1FFC0DE000000000000C001 /* DiffCommentStoreTests.swift */; };
 		D1FFC0DE000000000000D002 /* DiffCommentSubmissionPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1FFC0DE000000000000D001 /* DiffCommentSubmissionPool.swift */; };
+		2A2F5319AC19627E6DDAB873 /* DiffEditBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6545914DCA9217390DDBB27 /* DiffEditBridge.swift */; };
+		4C0C8D7891D94AB77CB0B91B /* DiffEditError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F00BAB2CC9DFA84A3076FD9 /* DiffEditError.swift */; };
+		8E7B931E98EF219EF4FCEC36 /* DiffEditFileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBD8712703B33EA32E10BC7 /* DiffEditFileService.swift */; };
+		2C832E984A660ADF1AB6873F /* DiffEditFileServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 420B452597A14F3948412FB1 /* DiffEditFileServiceTests.swift */; };
+		D34AAB4F4309FC6FE0499DAE /* DiffEditGrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE26B3485F47629361E12F4B /* DiffEditGrant.swift */; };
+		58B26BA02F2A01F773C39970 /* DiffEditLoadedFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A47A9E3E06267F98B21D917D /* DiffEditLoadedFile.swift */; };
+		EAA481616EC43DE829ED3850 /* DiffEditScope.swift in Sources */ = {isa = PBXBuildFile; fileRef = A44B67F24B2BBE4FBFA7A1A3 /* DiffEditScope.swift */; };
+		EDEAC94463363025471362C6 /* DiffEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0B4D7D8E9329E5537079D2 /* DiffEditView.swift */; };
 		3891225BEC11AA12703A03DD /* DiffRevealFileBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70DEF575313F30E2CB786FFA /* DiffRevealFileBridge.swift */; };
 		D1FFC0DE000000000000E002 /* DiffSidecarBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1FFC0DE000000000000E001 /* DiffSidecarBridge.swift */; };
 		A28B087F0000000000000001 /* DiffViewerEditableFocusMessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A28B087F0000000000000002 /* DiffViewerEditableFocusMessageHandler.swift */; };
@@ -6789,6 +6797,14 @@
 		D1FFC0DE000000000000A001 /* DiffCommentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffCommentStore.swift; sourceTree = "<group>"; };
 		D1FFC0DE000000000000C001 /* DiffCommentStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffCommentStoreTests.swift; sourceTree = "<group>"; };
 		D1FFC0DE000000000000D001 /* DiffCommentSubmissionPool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffCommentSubmissionPool.swift; sourceTree = "<group>"; };
+		F6545914DCA9217390DDBB27 /* DiffEditBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Panels/DiffEditBridge.swift; sourceTree = "<group>"; };
+		1F00BAB2CC9DFA84A3076FD9 /* DiffEditError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffEditError.swift; sourceTree = "<group>"; };
+		CEBD8712703B33EA32E10BC7 /* DiffEditFileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffEditFileService.swift; sourceTree = "<group>"; };
+		420B452597A14F3948412FB1 /* DiffEditFileServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DiffEditFileServiceTests.swift"; sourceTree = "<group>"; };
+		DE26B3485F47629361E12F4B /* DiffEditGrant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffEditGrant.swift; sourceTree = "<group>"; };
+		A47A9E3E06267F98B21D917D /* DiffEditLoadedFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffEditLoadedFile.swift; sourceTree = "<group>"; };
+		A44B67F24B2BBE4FBFA7A1A3 /* DiffEditScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffEditScope.swift; sourceTree = "<group>"; };
+		5B0B4D7D8E9329E5537079D2 /* DiffEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffEditView.swift; sourceTree = "<group>"; };
 		70DEF575313F30E2CB786FFA /* DiffRevealFileBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Panels/DiffRevealFileBridge.swift; sourceTree = "<group>"; };
 		D1FFC0DE000000000000E001 /* DiffSidecarBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Panels/DiffSidecarBridge.swift; sourceTree = "<group>"; };
 		A28B087F0000000000000002 /* DiffViewerEditableFocusMessageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Panels/DiffViewerEditableFocusMessageHandler.swift; sourceTree = "<group>"; };
@@ -12752,6 +12768,13 @@
 				2468A4FA4206864A7FE7BA60 /* AppDelegate+DiffRevealInFiles.swift */,
 				6F6B27D74EA081B4F7FCD72B /* FileExplorerRevealRequest.swift */,
 				70DEF575313F30E2CB786FFA /* DiffRevealFileBridge.swift */,
+				1F00BAB2CC9DFA84A3076FD9 /* DiffEditError.swift */,
+				CEBD8712703B33EA32E10BC7 /* DiffEditFileService.swift */,
+				DE26B3485F47629361E12F4B /* DiffEditGrant.swift */,
+				A44B67F24B2BBE4FBFA7A1A3 /* DiffEditScope.swift */,
+				F6545914DCA9217390DDBB27 /* DiffEditBridge.swift */,
+				A47A9E3E06267F98B21D917D /* DiffEditLoadedFile.swift */,
+				5B0B4D7D8E9329E5537079D2 /* DiffEditView.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -14404,6 +14427,7 @@
 				4189B3FB78ACEE79AE12B1AA /* ChiefDisabledHomeTests.swift */,
 				2E93DBA33C7287FE3D7FA1BB /* NotificationPopoverRowLayoutTests.swift */,
 				C0C7EE23B232921D28CA56FD /* NotificationsPopoverDrawnRowsTests.swift */,
+				420B452597A14F3948412FB1 /* DiffEditFileServiceTests.swift */,
 			);
 			path = cmuxTests;
 			sourceTree = "<group>";
@@ -16207,6 +16231,13 @@
 				D1FFC0DE000000000000B002 /* DiffCommentsBridge.swift in Sources */,
 				D1FFC0DE000000000000A002 /* DiffCommentStore.swift in Sources */,
 				D1FFC0DE000000000000D002 /* DiffCommentSubmissionPool.swift in Sources */,
+				2A2F5319AC19627E6DDAB873 /* DiffEditBridge.swift in Sources */,
+				4C0C8D7891D94AB77CB0B91B /* DiffEditError.swift in Sources */,
+				8E7B931E98EF219EF4FCEC36 /* DiffEditFileService.swift in Sources */,
+				D34AAB4F4309FC6FE0499DAE /* DiffEditGrant.swift in Sources */,
+				58B26BA02F2A01F773C39970 /* DiffEditLoadedFile.swift in Sources */,
+				EAA481616EC43DE829ED3850 /* DiffEditScope.swift in Sources */,
+				EDEAC94463363025471362C6 /* DiffEditView.swift in Sources */,
 				3891225BEC11AA12703A03DD /* DiffRevealFileBridge.swift in Sources */,
 				D1FFC0DE000000000000E002 /* DiffSidecarBridge.swift in Sources */,
 				A28B087F0000000000000001 /* DiffViewerEditableFocusMessageHandler.swift in Sources */,
@@ -19067,6 +19098,7 @@
 				DEC1CE00000000000000004E /* DeviceTerminalMirrorTests.swift in Sources */,
 				DEC1CE000000000000000048 /* DeviceWorkspaceProjectionTests.swift in Sources */,
 				D1FFC0DE000000000000C002 /* DiffCommentStoreTests.swift in Sources */,
+				2C832E984A660ADF1AB6873F /* DiffEditFileServiceTests.swift in Sources */,
 				9648DEAE0000000000000002 /* DiffViewerPickerCommandRunnerTests.swift in Sources */,
 				9648DEAD0000000000000002 /* DiffViewerURLSchemeHandlerLifecycleTests.swift in Sources */,
 				1AB92F80BD2D1FAB498887A5 /* DiffViewerViewedFilesStoreTests.swift in Sources */,

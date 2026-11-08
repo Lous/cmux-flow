@@ -98,6 +98,11 @@ final class DiffCommentsBridge: NSObject, WKScriptMessageHandlerWithReply {
         )
     }
 
+    /// The browser panel that owns `webView`, as recorded by ``associate(panelId:workspaceId:with:)``.
+    static func associatedPanelId(of webView: WKWebView) -> UUID? {
+        (objc_getAssociatedObject(webView, &panelAssociationKey) as? PanelAssociation)?.panelId
+    }
+
     func userContentController(
         _ userContentController: WKUserContentController,
         didReceive message: WKScriptMessage,

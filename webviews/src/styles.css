@@ -1593,3 +1593,154 @@ svg[data-icon-fill] {
     margin-left: 6px;
   }
 }
+
+/* ---- Source Control file tab: live diff editor ---------------------------- */
+#diff-editor-layer {
+  --cmux-edit-addition: light-dark(var(--cmux-diff-addition-fg-light), var(--cmux-diff-addition-fg-dark));
+  --cmux-edit-deletion: light-dark(var(--cmux-diff-deletion-fg-light), var(--cmux-diff-deletion-fg-dark));
+  grid-area: viewer;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  color: var(--cmux-diff-fg);
+  font-family: var(--cmux-diff-ui-font-family);
+  font-size: var(--cmux-diff-ui-font-size);
+  line-height: var(--cmux-diff-ui-line-height);
+}
+.diff-editor-toolbar,
+.diff-editor-notice {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--cmux-diff-border);
+}
+.diff-editor-notice {
+  flex-wrap: wrap;
+  background: var(--cmux-diff-muted-bg);
+}
+.diff-editor-notice[data-kind="conflict"] > span,
+.diff-editor-notice[data-kind="error"] > span {
+  color: var(--cmux-edit-deletion);
+}
+.diff-editor-path {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--cmux-diff-code-font-family);
+}
+.diff-editor-view {
+  flex-shrink: 0;
+  padding: 0 6px;
+  border: 1px solid var(--cmux-diff-border);
+  border-radius: 4px;
+  color: var(--cmux-diff-text-muted);
+  white-space: nowrap;
+}
+#diff-editor-layer[data-view="workingTree"] .diff-editor-view {
+  color: var(--cmux-edit-addition);
+}
+.diff-editor-status {
+  flex-shrink: 0;
+  color: var(--cmux-diff-text-muted);
+  white-space: nowrap;
+}
+#diff-editor-layer[data-dirty="true"] .diff-editor-view {
+  flex-shrink: 0;
+  padding: 0 6px;
+  border: 1px solid var(--cmux-diff-border);
+  border-radius: 4px;
+  color: var(--cmux-diff-text-muted);
+  white-space: nowrap;
+}
+#diff-editor-layer[data-view="workingTree"] .diff-editor-view {
+  color: var(--cmux-edit-addition);
+}
+.diff-editor-status {
+  color: var(--cmux-diff-accent);
+}
+.diff-editor-spacer {
+  flex: 1 1 auto;
+}
+.diff-editor-toolbar .file-review-load {
+  flex-shrink: 0;
+}
+.diff-editor-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.diff-editor-body > .cm-editor {
+  height: 100%;
+}
+.diff-editor-body > .cm-mergeView {
+  height: 100%;
+  overflow: auto;
+}
+.diff-editor-placeholder {
+  position: absolute;
+  inset: 40px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: var(--cmux-diff-text-muted);
+  text-align: center;
+  pointer-events: none;
+}
+/* Diff colors follow the viewer's addition/deletion palette. */
+#diff-editor-layer .cm-merge-b .cm-changedLine,
+#diff-editor-layer .cm-inlineChangedLine {
+  background-color: color-mix(in lab, var(--cmux-edit-addition) 13%, transparent);
+}
+#diff-editor-layer .cm-merge-a .cm-changedLine,
+#diff-editor-layer .cm-deletedChunk {
+  background-color: color-mix(in lab, var(--cmux-edit-deletion) 13%, transparent);
+}
+#diff-editor-layer .cm-merge-b .cm-changedText {
+  background: color-mix(in lab, var(--cmux-edit-addition) 32%, transparent);
+}
+#diff-editor-layer .cm-merge-a .cm-changedText,
+#diff-editor-layer .cm-deletedChunk .cm-deletedText {
+  background: color-mix(in lab, var(--cmux-edit-deletion) 32%, transparent);
+}
+#diff-editor-layer .cm-merge-b .cm-changedLineGutter {
+  background: var(--cmux-edit-addition);
+}
+#diff-editor-layer .cm-merge-a .cm-changedLineGutter,
+#diff-editor-layer .cm-deletedLineGutter {
+  background: var(--cmux-edit-deletion);
+}
+#diff-editor-layer .cm-collapsedLines {
+  color: var(--cmux-diff-text-muted);
+  background: var(--cmux-diff-muted-bg);
+}
+#diff-editor-layer .cm-merge-revert button {
+  color: var(--cmux-diff-text-muted);
+}
+#diff-editor-layer .cm-merge-revert button:hover {
+  color: var(--cmux-diff-fg);
+}
+#diff-editor-layer .cm-deletedChunk .cm-chunkButtons button.cmux-edit-revert {
+  padding: 0 6px;
+  border: 1px solid var(--cmux-diff-border);
+  border-radius: 4px;
+  background: var(--cmux-diff-bg);
+  color: var(--cmux-diff-fg);
+  font: 11px/16px var(--cmux-diff-ui-font-family);
+}
+#diff-editor-layer .cm-deletedChunk .cm-chunkButtons button.cmux-edit-revert:hover {
+  background: var(--cmux-diff-hover-bg);
+}
+#diff-editor-layer .cm-panels input,
+#diff-editor-layer .cm-panels button {
+  font: inherit;
+  color: inherit;
+}

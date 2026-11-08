@@ -3146,8 +3146,10 @@ final class BrowserPanel: Panel, ObservableObject {
         "globe"
     }
 
+    /// True while a diff viewer page holds unsaved file edits, so closing the
+    /// tab asks first.
     var isDirty: Bool {
-        false
+        DiffEditBridge.shared.hasUnsavedEdits(in: webView)
     }
 
     // Internal so BrowserPrewarmedWebViewPool builds prewarm webviews with
