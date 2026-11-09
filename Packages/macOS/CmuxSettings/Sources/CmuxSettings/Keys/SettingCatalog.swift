@@ -46,6 +46,7 @@ public struct SettingCatalog: SettingCatalogSection {
     public let canvas = CanvasCatalogSection()
     /// Settings for the built-in plain-text file editor (the `fileEditor.*` keys).
     public let fileEditor = FileEditorCatalogSection()
+    public let diffViewer = DiffViewerCatalogSection()
     /// Settings for Mobile pairing and sync.
     public let mobile = MobileCatalogSection()
     /// Discovery and privacy controls for My Devices.

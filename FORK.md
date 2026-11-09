@@ -19,7 +19,8 @@ an editor.
 
 - **Git tab in the right sidebar** (open the sidebar with ⌘⌥B, then the Git tab):
   - every Git repository the workspace touches, from the workspace folder and from each
-    terminal's directory, remembered per workspace across restarts;
+    terminal's directory, remembered per workspace across restarts until the folder
+    stops being a repository;
   - branch, ahead/behind, and staged / changes / merge-conflict entries with
     VS Code-style status letters and line counts;
   - live refresh as files change;
@@ -29,12 +30,17 @@ an editor.
     tree, staged changes, or the branch against its base.
 - **Edit inside the diff**, the way VS Code's diff editor works:
   - a file opened from the Git tab is editable right away (⌘S saves, ⌘Z undoes, ⌘F
-    finds, per-change revert); staged changes open read-only;
+    finds); staged changes open read-only;
+  - each change can be reverted from an arrow in the gutter, which never covers the
+    code;
   - the tab follows the file: agent edits appear in place, unstaging makes it
     editable, and it closes when the file's changes are discarded or committed;
   - unsaved edits mark the tab, keep it from being replaced, and ask before it
     closes; saving over a file that changed on disk asks to reload or overwrite.
 - **Diff viewer**:
+  - choose where diffs open in Settings → App → "Open Diffs In" (`diffViewer.placement`
+    in cmux.json): a split beside the terminal (default), a tab in the focused pane, or
+    an existing pane, so the terminal keeps its width;
   - "Show in Files" on each file opens the Files tab with that file selected;
   - diffs opened from the Git tab reopen with the new colors after a theme change, and
     every diff keeps an opaque background so its colors stay readable;
@@ -42,6 +48,9 @@ an editor.
 - **Git-aware Files explorer**:
   - git status for workspaces rooted at a folder of repositories;
   - status letters (M/A/D/R/U), a dot on changed folders, untracked files in green;
+  - hides `.git`, `.DS_Store` and the rest of VS Code's `files.exclude` defaults, from
+    the tree and from search; change the list with `fileExplorer.exclude` in cmux.json,
+    using the same patterns as VS Code (`true` / `false`, or `{"when": "$(basename).ts"}`);
   - live refresh without reloading the tree, so it no longer flickers while terminals
     create or delete files, and a fix for decorations that never reached top-level
     rows or collapsed folders when git status arrived after the tree was shown.

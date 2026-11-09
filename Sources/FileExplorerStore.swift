@@ -1246,8 +1246,28 @@ final class FileExplorerStore: ObservableObject {
     private let gitStatusProvider: GitStatusProvider
     private var gitStatusGeneration: UInt64 = 0
 
-    init(gitStatusProvider: GitStatusProvider = GitStatusProvider()) {
+    /// What `fileExplorer.exclude` hides, like VS Code's `files.exclude`.
+    private(set) var excludeFilter: FileExplorerExcludeFilter
+    private var excludeObservation: Task<Void, Never>?
+
+    init(
+        gitStatusProvider: GitStatusProvider = GitStatusProvider(),
+        excludeSettings: FileExplorerExcludeSettings = FileExplorerExcludeSettings(defaults: .standard)
+    ) {
         self.gitStatusProvider = gitStatusProvider
+        excludeFilter = excludeSettings.filter()
+        excludeObservation = Task { [weak self] in
+            for await _ in NotificationCenter.default.notifications(named: FileExplorerExcludeSettings.didChangeNotification) {
+                self?.applyExcludeFilter(excludeSettings.filter())
+            }
+        }
+    }
+
+    /// Shows the tree again under a new `fileExplorer.exclude`; expanded folders stay expanded.
+    func applyExcludeFilter(_ filter: FileExplorerExcludeFilter) {
+        guard filter != excludeFilter else { return }
+        excludeFilter = filter
+        reload()
     }
 
     var displayRootPath: String {
@@ -1756,7 +1776,7 @@ final class FileExplorerStore: ObservableObject {
                   let self,
                   self.rootPath == path,
                   self.resourceContextID == context else { return }
-            self.mergeRootEntries(entries)
+            self.mergeRootEntries(self.visibleEntries(entries, filter: self.excludeFilter))
         }
     }
 
@@ -1951,7 +1971,10 @@ final class FileExplorerStore: ObservableObject {
         }
 
         do {
-            let entries = try await provider.listDirectory(path: path, showHidden: showHiddenFiles)
+            let entries = visibleEntries(
+                try await provider.listDirectory(path: path, showHidden: showHiddenFiles),
+                filter: excludeFilter
+            )
             try Task.checkCancellation()
             let children = entries.map { entry in
                 let node = FileExplorerNode(name: entry.name, path: entry.path, isDirectory: entry.isDirectory)
@@ -2049,5 +2072,6 @@ final class FileExplorerStore: ObservableObject {
     deinit {
         remoteHomeResolutionTask?.cancel()
         directoryWatchTask?.cancel()
+        excludeObservation?.cancel()
     }
 }

@@ -10,6 +10,18 @@ import SwiftUI
 struct SourceControlPanelView: View {
     /// Display sections; untracked files are listed with the other changes,
     /// as VS Code does, while keeping their own group for diff generation.
+    /// A row's identity in the panel's one lazy stack. Two repositories can
+    /// both change `README.md`; without the root the stack draws it only once.
+    private struct RepositoryScoped<Value>: Identifiable {
+        let id: String
+        let value: Value
+
+        init(root: String, key: String, value: Value) {
+            id = "\(root)|\(key)"
+            self.value = value
+        }
+    }
+
     private enum Section: String, CaseIterable {
         case conflicts
         case staged
@@ -197,8 +209,8 @@ struct SourceControlPanelView: View {
             if let errorMessage = repository.errorMessage {
                 detailText(errorMessage)
             } else {
-                ForEach(Section.allCases, id: \.self) { section in
-                    sectionRows(section, in: repository)
+                ForEach(Section.allCases.map { RepositoryScoped(root: repository.root, key: $0.rawValue, value: $0) }) { item in
+                    sectionRows(item.value, in: repository)
                 }
                 if repository.isTruncated {
                     detailText(String(
@@ -226,8 +238,8 @@ struct SourceControlPanelView: View {
                 onDiscardAll: section == .changes ? { perform(.discard, changes, in: repository) } : nil
             )
             if !isCollapsed {
-                ForEach(changes) { change in
-                    fileRow(change, in: repository)
+                ForEach(changes.map { RepositoryScoped(root: repository.root, key: $0.id, value: $0) }) { item in
+                    fileRow(item.value, in: repository)
                 }
             }
         }

@@ -21,7 +21,9 @@ private enum SettingsJSONPathFallbackCatalog {
         "fileEditor.currentLineHighlight",
         "fileEditor.tabWidth",
         "fileExplorer.doubleClickAction",
+        "fileExplorer.exclude",
         "diffViewer.defaultLayout",
+        "diffViewer.placement",
     ]
 }
 

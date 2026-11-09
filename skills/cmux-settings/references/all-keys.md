@@ -292,6 +292,7 @@ Right-sidebar file explorer routing for file previews.
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `fileExplorer.doubleClickAction` | `"preview"` or `"defaultEditor"` or `"preferredEditor"` | `"preview"` | What double-clicking a file in the file explorer does. `preview` opens the built-in cmux file preview; the editor choices use the macOS default app or `app.preferredEditor`. |
+| `fileExplorer.exclude` | object of glob → `true`, `false` or `{ "when": "$(basename).ext" }` | `.git`, `.svn`, `.hg`, `.DS_Store`, `Thumbs.db` (each as `**/name`) | Files and folders the file explorer and its search hide, like VS Code's `files.exclude`. Globs match the path relative to the explorer root; entries merge with the defaults and `false` turns one off. |
 
 ## diffViewer
 
@@ -300,6 +301,7 @@ Built-in diff viewer settings. See [the detailed diff configuration](https://cmu
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `diffViewer.defaultLayout` | `"unified"` or `"split"` | `"unified"` | Default layout for newly opened diff viewers. The toolbar choice persists and `cmux diff --layout` overrides this value for one invocation. |
+| `diffViewer.placement` | `"split"` or `"tab"` or `"existingPane"` | `"split"` | Where diff viewers open, from the Git tab or `cmux diff`. `split` uses or creates the pane to the right; `tab` opens a tab in the focused pane so a terminal keeps its width; `existingPane` reuses another open pane and never splits. |
 
 ## shortcuts
 

@@ -48,6 +48,7 @@ public struct AppSection: View {
     @State private var fileEditorIndentGuides: DefaultsValueModel<Bool>
     @State private var fileEditorCurrentLineHighlight: DefaultsValueModel<Bool>
     @State private var fileEditorTabWidth: DefaultsValueModel<Int>
+    @State private var diffViewerPlacement: DefaultsValueModel<DiffViewerPlacement>
     @State private var iMessage: DefaultsValueModel<Bool>
     @State private var reorder: DefaultsValueModel<WorkspaceAutoReorderMode>
     @State private var dockBadge: DefaultsValueModel<Bool>
@@ -124,6 +125,7 @@ public struct AppSection: View {
         _fileEditorIndentGuides = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.fileEditor.indentGuides))
         _fileEditorCurrentLineHighlight = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.fileEditor.currentLineHighlight))
         _fileEditorTabWidth = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.fileEditor.tabWidth))
+        _diffViewerPlacement = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.diffViewer.placement))
         _iMessage = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.app.iMessageMode))
         _reorder = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.app.reorderOnNotification))
         _dockBadge = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.notifications.dockBadge))
@@ -178,7 +180,7 @@ public struct AppSection: View {
             mainCard
         }
         .task {
-            startSettingsObservation([language, appIcon, placement, inheritDir, minimalMode, keepWorkspaceOpen, firstClick, focusHistoryIncludesPanesAndTabs, equalizeSplitsOnCreate, equalizeSplitsOnDividerDoubleClick, fileDrop, preferredEditor, openSupported, openMarkdown, globalFontMagnification, markdownFontSize, markdownFontFamily, markdownMaxWidth, canvasPaneGap, canvasSnapping, fileEditorWordWrap, fileEditorSyntaxHighlighting, fileEditorLineNumbers, fileEditorIndentGuides, fileEditorCurrentLineHighlight, fileEditorTabWidth, iMessage, reorder, dockBadge, menuBarOnly, showInMenuBar, paneRing, paneFlash, paneFlashDoubleBlink, paneFlashOnTyping, paneFlashThemeColor, desktopNotifications, agentPermissionPrompt, agentTurnComplete, agentIdleReminder, soundName, soundWhenFocused, soundCommand, customSoundFile, soundOverrides, telemetry, confirmQuit, warnCloseTab, warnCloseAgentSession, warnCloseX, warnCloseWorkspace, alwaysConfirmCloseWorkspace, warnCloseWindow, hideCloseButton, renameSelects, paletteAllSurfaces])
+            startSettingsObservation([language, appIcon, placement, inheritDir, minimalMode, keepWorkspaceOpen, firstClick, focusHistoryIncludesPanesAndTabs, equalizeSplitsOnCreate, equalizeSplitsOnDividerDoubleClick, fileDrop, preferredEditor, openSupported, openMarkdown, globalFontMagnification, markdownFontSize, markdownFontFamily, markdownMaxWidth, canvasPaneGap, canvasSnapping, fileEditorWordWrap, fileEditorSyntaxHighlighting, fileEditorLineNumbers, fileEditorIndentGuides, fileEditorCurrentLineHighlight, fileEditorTabWidth, diffViewerPlacement, iMessage, reorder, dockBadge, menuBarOnly, showInMenuBar, paneRing, paneFlash, paneFlashDoubleBlink, paneFlashOnTyping, paneFlashThemeColor, desktopNotifications, agentPermissionPrompt, agentTurnComplete, agentIdleReminder, soundName, soundWhenFocused, soundCommand, customSoundFile, soundOverrides, telemetry, confirmQuit, warnCloseTab, warnCloseAgentSession, warnCloseX, warnCloseWorkspace, alwaysConfirmCloseWorkspace, warnCloseWindow, hideCloseButton, renameSelects, paletteAllSurfaces])
             await soundAgentCache.loadIfNeeded { await hostActions.notificationSoundAgentOptions() }
             if languageAtAppear == nil { languageAtAppear = language.current }; if telemetryAtAppear == nil { telemetryAtAppear = telemetry.current }
         }
@@ -608,6 +610,23 @@ public struct AppSection: View {
                     String(localized: "settings.app.fileEditorTabWidth", defaultValue: "File Editor Tab Width")
                 )
                 .accessibilityIdentifier("SettingsFileEditorTabWidthStepper")
+            }
+            SettingsCardDivider()
+
+            SettingsCardRow(
+                configurationReview: .json("diffViewer.placement"),
+                String(localized: "settings.app.diffViewerPlacement", defaultValue: "Open Diffs In"),
+                subtitle: String(localized: "settings.app.diffViewerPlacement.subtitle", defaultValue: "Where diffs from the Git tab and cmux diff open. A split beside a terminal narrows it; a tab or an existing pane keeps its width."),
+                controlWidth: Self.columnWidth
+            ) {
+                Picker("", selection: Binding(get: { diffViewerPlacement.current }, set: { diffViewerPlacement.set($0) })) {
+                    Text(String(localized: "settings.app.diffViewerPlacement.split", defaultValue: "Split")).tag(DiffViewerPlacement.split)
+                    Text(String(localized: "settings.app.diffViewerPlacement.tab", defaultValue: "Tab in Focused Pane")).tag(DiffViewerPlacement.tab)
+                    Text(String(localized: "settings.app.diffViewerPlacement.existingPane", defaultValue: "Existing Pane")).tag(DiffViewerPlacement.existingPane)
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("SettingsDiffViewerPlacementPicker")
             }
             SettingsCardDivider()
 

@@ -290,11 +290,15 @@ extension CmuxSettingsFileStore {
             [
                 "fileExplorer": [
                     "doubleClickAction": FileExplorerDoubleClickActionSettings.defaultValue.rawValue,
+                    "exclude": Dictionary(
+                        uniqueKeysWithValues: FileExplorerExcludeFilter.defaultPatterns.map { ($0, true) }
+                    ),
                 ],
             ],
             [
                 "diffViewer": [
                     "defaultLayout": "unified",
+                    "placement": DiffViewerCatalogSection().placement.defaultValue.rawValue,
                 ],
             ],
             [

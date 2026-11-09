@@ -492,6 +492,9 @@ final class CmuxSettingsFileStore {
         if let fileExplorerSection = root["fileExplorer"] as? [String: Any] {
             parseFileExplorerSection(fileExplorerSection, sourcePath: sourcePath, snapshot: &snapshot)
         }
+        if let diffViewerSection = root["diffViewer"] as? [String: Any] {
+            parseDiffViewerSection(diffViewerSection, sourcePath: sourcePath, snapshot: &snapshot)
+        }
         if let section = root["agentMessages"] as? [String: Any] { parseAgentMessagesSection(section, sourcePath: sourcePath, snapshot: &snapshot) }
         if let section = root["chief"] as? [String: Any] { parseChiefSection(section, sourcePath: sourcePath, snapshot: &snapshot) }
         if let workspaceGroupsSection = root["workspaceGroups"] as? [String: Any] {
@@ -1715,6 +1718,8 @@ final class CmuxSettingsFileStore {
                     AppIconSettings.applyIcon(AppIconSettings.resolvedMode(defaults: userDefaults))
                 } else if change.defaultsKey == GlobalFontMagnification.percentKey {
                     notificationCenter.post(name: GlobalFontMagnification.didChangeNotification, object: nil)
+                } else if change.defaultsKey == FileExplorerExcludeSettings.key {
+                    notificationCenter.post(name: FileExplorerExcludeSettings.didChangeNotification, object: nil)
                 }
             }
 

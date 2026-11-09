@@ -259,11 +259,39 @@ actor FileSearchOutputPipeline {
     private var lastSnapshotEmissionDate = Date.distantPast
     private var isFinished = false
     private var terminalUpdate: FileSearchPipelineUpdate?
+    /// Rules with a `when` clause need the match's siblings, which ripgrep cannot check.
+    private let excludeFilter: FileExplorerExcludeFilter
+    private var siblingNamesByFolder: [String: Set<String>] = [:]
 
-    init(rootPath: String, maxResults: Int, snapshotInterval: TimeInterval) {
+    init(
+        rootPath: String,
+        maxResults: Int,
+        snapshotInterval: TimeInterval,
+        excludeFilter: FileExplorerExcludeFilter = FileExplorerExcludeFilter()
+    ) {
         self.rootPath = rootPath
         self.maxResults = maxResults
         self.snapshotInterval = snapshotInterval
+        self.excludeFilter = excludeFilter
+    }
+
+    /// Whether a `when` rule of `fileExplorer.exclude` hides the result's file.
+    private func isHiddenBySiblingRule(_ result: FileSearchResult) -> Bool {
+        guard excludeFilter.hasSiblingRules else { return false }
+        let folder = (result.path as NSString).deletingLastPathComponent
+        let siblings: Set<String>
+        if let known = siblingNamesByFolder[folder] {
+            siblings = known
+        } else {
+            siblings = Set((try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? [])
+            siblingNamesByFolder[folder] = siblings
+        }
+        return excludeFilter.excludes(
+            relativePath: result.relativePath,
+            absolutePath: result.path,
+            name: (result.path as NSString).lastPathComponent,
+            siblingNames: siblings
+        )
     }
 
     func consumeStdout(_ data: Data) -> FileSearchPipelineUpdate? {
@@ -297,7 +325,8 @@ actor FileSearchOutputPipeline {
 
     private func consumeStdoutLine(_ lineData: Data) -> FileSearchPipelineUpdate? {
         guard let line = String(data: lineData, encoding: .utf8),
-              let result = FileSearchRipgrepParser.parseMatchLine(line, rootPath: rootPath) else {
+              let result = FileSearchRipgrepParser.parseMatchLine(line, rootPath: rootPath),
+              !isHiddenBySiblingRule(result) else {
             return nil
         }
         results.append(result)
@@ -434,6 +463,12 @@ final class FileSearchController: FileSearchControlling {
 
     var onSnapshotChanged: ((FileSearchSnapshot) -> Void)?
 
+    private let excludeSettings: FileExplorerExcludeSettings
+
+    init(excludeSettings: FileExplorerExcludeSettings = FileExplorerExcludeSettings(defaults: .standard)) {
+        self.excludeSettings = excludeSettings
+    }
+
     private let maxResults = 500
     private let snapshotInterval: TimeInterval = 0.05
     private let excludedSearchGlobs = [
@@ -514,8 +549,15 @@ final class FileSearchController: FileSearchControlling {
         let searchGeneration = generation
         emit(status: .searching, isSearching: true)
 
+        // `fileExplorer.exclude` hides the same paths from search, as VS Code's
+        // search follows `files.exclude`.
+        let excludeFilter = excludeSettings.filter()
         let process = Process()
         process.executableURL = executable.url
+        // ripgrep matches `--glob` against paths relative to its working
+        // directory; from `/` those are the absolute paths the root-anchored
+        // exclusions name.
+        process.currentDirectoryURL = URL(fileURLWithPath: "/", isDirectory: true)
         process.arguments = executable.prefixArguments + [
             "--json",
             "--line-number",
@@ -530,7 +572,7 @@ final class FileSearchController: FileSearchControlling {
             // or accented query into a pattern that never matches precomposed file text.
             // Passing the pattern on stdin keeps the query's exact UTF-8 bytes.
             "--file", "-",
-        ] + excludedSearchGlobs.flatMap { ["--glob", $0] } + [
+        ] + (excludedSearchGlobs + excludeFilter.ripgrepExcludeGlobs(rootPath: rootPath)).flatMap { ["--glob", $0] } + [
             "--",
             rootPath,
         ]
@@ -544,7 +586,8 @@ final class FileSearchController: FileSearchControlling {
         let pipeline = FileSearchOutputPipeline(
             rootPath: rootPath,
             maxResults: maxResults,
-            snapshotInterval: snapshotInterval
+            snapshotInterval: snapshotInterval,
+            excludeFilter: excludeFilter
         )
         self.pipeline = pipeline
         let terminationSignal = FileSearchTerminationSignal()

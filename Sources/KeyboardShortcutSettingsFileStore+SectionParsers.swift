@@ -397,6 +397,35 @@ extension CmuxSettingsFileStore {
         } else if section.keys.contains("doubleClickAction") {
             logInvalid("fileExplorer.doubleClickAction", sourcePath: sourcePath)
         }
+        if let raw = section["exclude"] {
+            if let parsed = FileExplorerExcludeSettings.storedValue(fromJSON: raw) {
+                snapshot.managedUserDefaults[FileExplorerExcludeSettings.key] = .string(parsed.stored)
+                for pattern in parsed.skippedPatterns {
+                    logInvalid("fileExplorer.exclude[\(pattern)]", sourcePath: sourcePath)
+                }
+            } else {
+                logInvalid("fileExplorer.exclude", sourcePath: sourcePath)
+            }
+        }
+    }
+
+    /// `diffViewer.placement`. `diffViewer.defaultLayout` is read by the
+    /// `cmux diff` CLI itself, not the app.
+    func parseDiffViewerSection(
+        _ section: [String: Any],
+        sourcePath: String,
+        snapshot: inout ResolvedSettingsSnapshot
+    ) {
+        let placementKey = DiffViewerCatalogSection().placement
+        if let raw = jsonString(section["placement"]) {
+            if let placement = DiffViewerPlacement(rawValue: raw) {
+                snapshot.managedUserDefaults[placementKey.userDefaultsKey] = .string(placement.rawValue)
+            } else {
+                logInvalid(placementKey.id, sourcePath: sourcePath)
+            }
+        } else if section.keys.contains("placement") {
+            logInvalid(placementKey.id, sourcePath: sourcePath)
+        }
     }
 
     /// `agentMessages.enabled`, the app-wide switch for agent messages.

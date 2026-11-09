@@ -44,6 +44,7 @@ import {
   rectangularSelection,
 } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
+import { revertGutter } from "./revert-gutter";
 
 export type DiffEditorLayout = "split" | "unified";
 
@@ -209,25 +210,6 @@ function indentOf(text: string): string {
   return twos >= fours / 2 && twos > 0 ? "  " : fours > 0 ? "    " : "  ";
 }
 
-function revertOnlyControl(label: string) {
-  return (type: "reject" | "accept", action: (event: MouseEvent) => void): HTMLElement => {
-    const button = document.createElement("button");
-    if (type === "accept") {
-      // Accepting would only rewrite the in-memory comparison text; editing
-      // the file is the accept. Keep the slot, never show it.
-      button.hidden = true;
-      return button;
-    }
-    button.type = "button";
-    button.name = "reject";
-    button.className = "cmux-edit-revert";
-    button.textContent = label;
-    button.title = label;
-    button.onmousedown = action;
-    return button;
-  };
-}
-
 export function createDiffEditor(options: DiffEditorOptions): DiffEditorHandle {
   const languageCompartment = new Compartment();
   const wrapCompartment = new Compartment();
@@ -344,12 +326,15 @@ export function createDiffEditor(options: DiffEditorOptions): DiffEditorHandle {
           selection,
           extensions: [
             ...rightSideExtensions(content),
+            // The merge package's accept/reject buttons float over the code;
+            // reverting lives in the gutter instead, as in VS Code.
+            editable ? revertGutter(options.labels.revertChange) : [],
             unifiedMergeView({
               original: base,
               gutter: true,
               highlightChanges: true,
               syntaxHighlightDeletions: true,
-              mergeControls: editable ? revertOnlyControl(options.labels.revertChange) : false,
+              mergeControls: false,
             }),
           ],
         }),

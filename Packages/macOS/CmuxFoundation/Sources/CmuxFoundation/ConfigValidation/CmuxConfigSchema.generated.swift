@@ -2517,6 +2517,31 @@ enum CmuxEmbeddedConfigSchema {
           "default": "preview",
           "description": "What double-clicking (or pressing Return on a search result for) a file in the file explorer does. `preview` opens the built-in cmux file preview (the default and historical behavior). `defaultEditor` opens with the macOS default app for the file type. `preferredEditor` opens with the `app.preferredEditor` command, falling back to the default app when none is set. Only applies to files; directories always expand/collapse, and non-local (remote) file explorers always open the cmux preview.",
           "descriptionKey": "schemaDescriptions.fileExplorer.doubleClickAction"
+        },
+        "exclude": {
+          "type": "object",
+          "default": {
+            "**/.git": true,
+            "**/.svn": true,
+            "**/.hg": true,
+            "**/.DS_Store": true,
+            "**/Thumbs.db": true
+          },
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "boolean" },
+              {
+                "type": "object",
+                "properties": {
+                  "when": { "type": "string", "minLength": 1 }
+                },
+                "required": ["when"],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "description": "Glob patterns for files and folders the file explorer hides, like VS Code's `files.exclude`. Patterns are matched against the path relative to the explorer's root: `**` matches any number of folders, `*` and `?` match within a name, `{a,b}` matches either. `true` hides matches, `false` turns off one of the default patterns, and `{ \"when\": \"$(basename).ts\" }` hides a match only when a sibling with that name exists. Your entries are merged with the defaults. The file explorer's search skips the same paths.",
+          "descriptionKey": "schemaDescriptions.fileExplorer.exclude"
         }
       }
     },
@@ -2533,6 +2558,13 @@ enum CmuxEmbeddedConfigSchema {
           "default": "unified",
           "description": "Default layout for newly opened diff viewers. The toolbar layout toggle persists the user's last choice; an explicit `cmux diff --layout` option overrides both.",
           "descriptionKey": "schemaDescriptions.diffViewer.defaultLayout"
+        },
+        "placement": {
+          "type": "string",
+          "enum": ["split", "tab", "existingPane"],
+          "default": "split",
+          "description": "Where diff viewers open, from the Git tab or `cmux diff`. `split` uses the pane to the right of the focused one and creates a split when there is none. `tab` opens a tab in the focused pane, so a terminal there keeps its width. `existingPane` reuses another open pane, preferring the one to the right, and never creates a split; with a single pane it opens a tab.",
+          "descriptionKey": "schemaDescriptions.diffViewer.placement"
         }
       }
     },

@@ -1728,16 +1728,31 @@ svg[data-icon-fill] {
 #diff-editor-layer .cm-merge-revert button:hover {
   color: var(--cmux-diff-fg);
 }
-#diff-editor-layer .cm-deletedChunk .cm-chunkButtons button.cmux-edit-revert {
-  padding: 0 6px;
-  border: 1px solid var(--cmux-diff-border);
-  border-radius: 4px;
-  background: var(--cmux-diff-bg);
-  color: var(--cmux-diff-fg);
-  font: 11px/16px var(--cmux-diff-ui-font-family);
+#diff-editor-layer .cmux-edit-revert-gutter .cm-gutterElement {
+  padding: 0 2px;
 }
-#diff-editor-layer .cm-deletedChunk .cm-chunkButtons button.cmux-edit-revert:hover {
+#diff-editor-layer .cmux-edit-revert-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 1lh;
+  border-radius: 3px;
+  color: var(--cmux-diff-text-muted);
+  cursor: pointer;
+}
+#diff-editor-layer .cmux-edit-revert-marker:hover {
+  color: var(--cmux-diff-fg);
   background: var(--cmux-diff-hover-bg);
+}
+#diff-editor-layer .cmux-edit-revert-marker svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 #diff-editor-layer .cm-panels input,
 #diff-editor-layer .cm-panels button {

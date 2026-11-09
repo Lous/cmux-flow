@@ -172,10 +172,40 @@ describe("createDiffEditor", () => {
   test("a read-only right side refuses typing but keeps its text selectable", async () => {
     const { handle, editable, parent } = await makeEditor("index\n", "head\n", "unified", false);
     expect(editable().state.readOnly).toBe(true);
-    expect(parent.querySelector(".cmux-edit-revert")).toBeNull();
+    expect(parent.querySelector(".cmux-edit-revert-marker")).toBeNull();
     handle.reset("disk\n", "index\n", true);
     expect(editable().state.readOnly).toBe(false);
     expect(handle.getContent()).toBe("disk\n");
+    handle.destroy();
+  });
+
+  test("unified view reverts a change from the gutter, never over the code", async () => {
+    const { handle, parent, editable } = await makeEditor("one\nTWO\nthree\nfour\nadded\n", "one\ntwo\nthree\nfour\n");
+    const markers = () => Array.from(parent.querySelectorAll(".cmux-edit-revert-marker[role=button]")) as HTMLElement[];
+    expect(parent.querySelector(".cm-chunkButtons")).toBeNull();
+    // One beside the removed "two", one beside the line that was only added.
+    expect(markers().length).toBe(2);
+    expect(markers()[0].getAttribute("aria-label")).toBe("Revert");
+    markers()[0].dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+    expect(handle.getContent()).toBe("one\ntwo\nthree\nfour\nadded\n");
+    expect(handle.isDirty()).toBe(true);
+    expect(markers().length).toBe(1);
+    markers()[0].dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+    expect(handle.getContent()).toBe("one\ntwo\nthree\nfour\n");
+    expect(markers().length).toBe(0);
+    const { undo } = await import("@codemirror/commands");
+    undo(editable());
+    undo(editable());
+    expect(handle.getContent()).toBe("one\nTWO\nthree\nfour\nadded\n");
+    handle.destroy();
+  });
+
+  test("split view keeps its own revert arrows between the sides", async () => {
+    const { handle, parent } = await makeEditor("a\nB\n", "a\nb\n", "split");
+    expect(parent.querySelector(".cmux-edit-revert-marker")).toBeNull();
+    // MergeView draws its arrows on its next measure pass.
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    expect(parent.querySelector(".cm-merge-revert button")).not.toBeNull();
     handle.destroy();
   });
 

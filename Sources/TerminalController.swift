@@ -7926,9 +7926,15 @@ class TerminalController {
                 transparentBackground: transparentBackground,
                 bypassRemoteProxy: bypassRemoteProxy
             )
-            guard let placement = container.openBrowserToRight(
-                of: sourceSurfaceId,
-                request: request
+            // Diff viewers follow `diffViewer.placement`; other browsers keep
+            // the right-hand split.
+            let diffPlacement: DiffViewerPlacement = v2IsDiffViewerURL(url)
+                ? UserDefaultsSettingsClient(defaults: .standard).value(for: DiffViewerCatalogSection().placement)
+                : .split
+            guard let placement = container.openDiffViewer(
+                beside: sourceSurfaceId,
+                request: request,
+                placement: diffPlacement
             ) else {
                 result = .err(code: "internal_error", message: "Failed to create browser", data: nil)
                 return
@@ -7970,9 +7976,7 @@ class TerminalController {
                         uuid: targetPaneUUID
                     ),
                     "created_split": placement.createdSplit,
-                    "placement_strategy": placement.createdSplit
-                        ? "split_right"
-                        : "reuse_right_sibling",
+                    "placement_strategy": placement.strategy.wireName,
                     "show_omnibar": placement.panel.isOmnibarVisible,
                     "transparent_background": transparentBackground,
                     "bypass_remote_proxy": bypassRemoteProxy,

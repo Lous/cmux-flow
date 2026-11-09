@@ -113,6 +113,12 @@ extension Array where Element == CuratedSettingEntry {
                 title: String(localized: "settings.app.fileEditorTabWidth", defaultValue: "File Editor Tab Width"),
                 synonyms: "fileEditor.tabWidth " + String(localized: "settings.search.fileEditor.tabWidth", defaultValue: "tab width indent columns")
             ),
+            .init(
+                section: .app,
+                id: "diff-viewer-placement",
+                title: String(localized: "settings.app.diffViewerPlacement", defaultValue: "Open Diffs In"),
+                synonyms: "diffViewer.placement " + String(localized: "settings.search.diffViewer.placement", defaultValue: "diff viewer placement split tab pane git terminal width")
+            ),
             .init(section: .app, id: "terminal-config", title: String(localized: "settings.app.configWindow", defaultValue: "Terminal Config"), synonyms: "Terminal Config ghostty config merged generated preview terminal configuration window open config macos-option-as-alt option as alt left option right option alt key meta"),
             .init(section: .app, id: "global-font-magnification", title: String(localized: "settings.app.globalFontMagnification", defaultValue: "Global Font Magnification"), synonyms: "app.globalFontMagnification global font magnification scale text zoom terminals tabs chrome bigger smaller accessibility"),
             .init(section: .app, id: "imessage-mode", title: String(localized: "settings.app.iMessageMode", defaultValue: "iMessage Mode"), synonyms: "iMessage Mode app.iMessageMode imessage message messages chat prompt prompts submitted texting reorder move workspace top agent send"),

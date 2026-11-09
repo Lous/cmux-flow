@@ -145,6 +145,12 @@ struct SourceControlGitClient: Sendable {
         return roots
     }
 
+    /// Whether `root` is still a repository's top level: it holds a `.git`
+    /// directory (a clone) or file (a linked worktree or submodule).
+    func isRepositoryRoot(_ root: String) -> Bool {
+        FileManager.default.fileExists(atPath: (root as NSString).appendingPathComponent(".git"))
+    }
+
     private func childRepositoryRoots(of directory: String) -> [String] {
         let normalized = Self.normalizedPath(directory)
         // Scanning the home folder or the volume root would touch protected
@@ -161,9 +167,7 @@ struct SourceControlGitClient: Sendable {
                 guard fileManager.fileExists(atPath: child, isDirectory: &isDirectory), isDirectory.boolValue else {
                     return nil
                 }
-                // `.git` is a directory for a clone and a file for a linked worktree or submodule.
-                let marker = (child as NSString).appendingPathComponent(".git")
-                return fileManager.fileExists(atPath: marker) ? child : nil
+                return isRepositoryRoot(child) ? child : nil
             }
     }
 
@@ -183,6 +187,16 @@ struct SourceControlGitClient: Sendable {
 
     /// Branch, changed files and line counts for one repository.
     func snapshot(forRepositoryRoot root: String) async -> SourceControlRepositorySnapshot {
+        // Git would answer for an enclosing repository instead, listing its
+        // changes (with its paths) under this folder's name.
+        guard isRepositoryRoot(root) else {
+            return SourceControlRepositorySnapshot(
+                root: root,
+                branch: SourceControlBranchInfo(),
+                changes: [],
+                isRepositoryRoot: false
+            )
+        }
         guard let statusOutput = await run(
             ["status", "--porcelain=v2", "--branch", "-z", "--untracked-files=all"],
             in: root

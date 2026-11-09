@@ -86,6 +86,7 @@ enum SettingsSearchAliasIndex {
         "app:file-editor-indent-guides": localized("settings.search.alias.setting.app.file-editor-indent-guides", defaultValue: "fileEditor.indentGuides indent guides columns"),
         "app:file-editor-current-line-highlight": localized("settings.search.alias.setting.app.file-editor-current-line-highlight", defaultValue: "fileEditor.currentLineHighlight current line caret"),
         "app:file-editor-tab-width": localized("settings.search.alias.setting.app.file-editor-tab-width", defaultValue: "fileEditor.tabWidth tab width indent columns"),
+        "app:diff-viewer-placement": localized("settings.search.alias.setting.app.diff-viewer-placement", defaultValue: "diffViewer.placement diff viewer placement split tab pane git terminal width"),
         "app:imessage-mode": localized("settings.search.alias.setting.app.imessage-mode", defaultValue: "app.iMessageMode imessage message messages chat prompt prompts submitted message texting reorder move workspace top agent send"),
         "app:reorder-notification": localized("settings.search.alias.setting.app.reorder-notification", defaultValue: "app.reorderOnNotification notification reorder move workspace top unread sort agent activity agents prompt turn finished needs input"),
         "app:dock-badge": localized("settings.search.alias.setting.app.dock-badge", defaultValue: "notifications.dockBadge badge dock unread count icon notifications red bubble"),

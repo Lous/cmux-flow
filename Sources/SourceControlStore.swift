@@ -264,11 +264,15 @@ final class SourceControlStore {
     }
 
     private func apply(_ snapshots: [String: SourceControlRepositorySnapshot]) {
+        let gone = snapshots.values.filter { !$0.isRepositoryRoot }.map(\.root)
+        if !gone.isEmpty {
+            forget(gone)
+        }
         var byRoot: [String: SourceControlRepositorySnapshot] = [:]
         for repository in repositories {
             byRoot[repository.root] = repository
         }
-        for (root, snapshot) in snapshots {
+        for (root, snapshot) in snapshots where snapshot.isRepositoryRoot {
             byRoot[root] = snapshot
         }
         let ordered = roots
@@ -281,6 +285,17 @@ final class SourceControlStore {
         if ordered != repositories {
             repositories = ordered
         }
+    }
+
+    /// Drops remembered roots that stopped being repositories (a project
+    /// folded into a monorepo, a deleted clone), so they leave the list and
+    /// are not shown again after a restart.
+    private func forget(_ gone: [String]) {
+        guard let workspaceId else { return }
+        for root in gone {
+            roots = memory.remove(root, for: workspaceId)
+        }
+        restartWatcher()
     }
 
     // MARK: - File watching

@@ -1,6 +1,7 @@
 import Bonsplit
 import CmuxBrowser
 import CmuxPanes
+import CmuxSettings
 import Foundation
 
 /// Adapts the main workspace and Dock split trees to one browser-placement path.
@@ -90,7 +91,7 @@ enum BrowserSplitContainer {
                 in: targetPane,
                 request: request
             ).map {
-                BrowserSplitPlacement(panel: $0, createdSplit: false)
+                BrowserSplitPlacement(panel: $0, strategy: .reuseRightSibling)
             }
         }
 
@@ -98,7 +99,62 @@ enum BrowserSplitContainer {
             from: sourcePanelID,
             request: request
         ).map {
-            BrowserSplitPlacement(panel: $0, createdSplit: true)
+            BrowserSplitPlacement(panel: $0, strategy: .splitRight)
+        }
+    }
+
+    /// Opens a diff viewer where `diffViewer.placement` asks.
+    ///
+    /// `.split` behaves like ``openBrowserToRight(of:request:)``. `.tab` opens in
+    /// the source pane. `.existingPane` never splits: it takes the pane to the
+    /// right, else the source pane when it already shows a browser (a diff the
+    /// user is reading), else another pane, else the source pane. Neither changes
+    /// a terminal's width.
+    func openDiffViewer(
+        beside sourcePanelID: UUID,
+        request: BrowserSplitRequest,
+        placement: DiffViewerPlacement
+    ) -> BrowserSplitPlacement? {
+        guard placement != .split else {
+            return openBrowserToRight(of: sourcePanelID, request: request)
+        }
+        guard containsPanel(sourcePanelID),
+              let sourcePane = paneID(forPanelID: sourcePanelID) else {
+            return nil
+        }
+        if placement == .existingPane {
+            if let targetPane = preferredRightSidePane(from: sourcePane) {
+                return createBrowserSurface(in: targetPane, request: request).map {
+                    BrowserSplitPlacement(panel: $0, strategy: .reuseRightSibling)
+                }
+            }
+            if !isBrowserPanel(sourcePanelID),
+               let targetPane = allPaneIDs.first(where: { $0 != sourcePane }) {
+                return createBrowserSurface(in: targetPane, request: request).map {
+                    BrowserSplitPlacement(panel: $0, strategy: .reuseExistingPane)
+                }
+            }
+        }
+        return createBrowserSurface(in: sourcePane, request: request).map {
+            BrowserSplitPlacement(panel: $0, strategy: .samePane)
+        }
+    }
+
+    private func isBrowserPanel(_ panelID: UUID) -> Bool {
+        switch self {
+        case .workspace(let workspace):
+            return workspace.panels[panelID] is BrowserPanel
+        case .dock(let dock):
+            return dock.browserPanel(for: panelID) != nil
+        }
+    }
+
+    private var allPaneIDs: [PaneID] {
+        switch self {
+        case .workspace(let workspace):
+            return workspace.bonsplitController.allPaneIds
+        case .dock(let dock):
+            return dock.bonsplitController.allPaneIds
         }
     }
 

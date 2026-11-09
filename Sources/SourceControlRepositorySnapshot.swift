@@ -10,6 +10,10 @@ struct SourceControlRepositorySnapshot: Hashable, Sendable, Identifiable {
     var isTruncated: Bool = false
     /// Set when Git could not report status for this repository.
     var errorMessage: String?
+    /// False once `root` stopped being a repository's top level: its `.git` was
+    /// deleted, or the folder was folded into an enclosing repository. The panel
+    /// then forgets it, the way VS Code closes a repository whose `.git` goes away.
+    var isRepositoryRoot: Bool = true
 
     var id: String { root }
 
