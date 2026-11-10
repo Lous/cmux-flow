@@ -2215,6 +2215,8 @@
 		D12925020000000000000001 /* FileDropPaneTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12925020000000000000002 /* FileDropPaneTarget.swift */; };
 		F12748000000000000000001 /* FileEditorWordWrapShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F12748000000000000000002 /* FileEditorWordWrapShortcutTests.swift */; };
 		FE5996010000000000000002 /* FileExplorerCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5996010000000000000001 /* FileExplorerCellView.swift */; };
+		CA1A1EF954AAA4803E063EB1 /* FileExplorerChangedFolders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6A277F689B3D65F7BED260 /* FileExplorerChangedFolders.swift */; };
+		B55FEE489AF3C716459DDEC7 /* FileExplorerChangedFoldersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 414BB29F6B23F188ED4D6F84 /* FileExplorerChangedFoldersTests.swift */; };
 		58577BB461FB6F36BB3ACF86 /* FileExplorerContainerView+SearchStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF8AA8182149D0EC033A391 /* FileExplorerContainerView+SearchStatus.swift */; };
 		12914C0112914C0112914C01 /* FileExplorerContextMenuReloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12914C0212914C0212914C02 /* FileExplorerContextMenuReloadTests.swift */; };
 		C40410010000000000000021 /* FileExplorerDoubleClickActionSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C40410010000000000000020 /* FileExplorerDoubleClickActionSettings.swift */; };
@@ -3758,8 +3760,9 @@
 		6425E2288A585B8FEA6DDC98 /* SourceControlGroupHeaderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977B7C2923C2A35BE863BE6F /* SourceControlGroupHeaderRow.swift */; };
 		DB24D04122D629C715488D16 /* SourceControlPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F175F95A81217A6E33FC2A /* SourceControlPanelView.swift */; };
 		F9C74F1127E35E825829BB7C /* SourceControlRepositoryHeaderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35D22BE0DDFF3AC4D02E1147 /* SourceControlRepositoryHeaderRow.swift */; };
-		1AA9D07423E1D0E667B706FA /* SourceControlRepositoryMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CAC3DBE362E1BEF716DAF3D /* SourceControlRepositoryMemory.swift */; };
 		B130361B63DFC4355F23759B /* SourceControlRepositorySnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381C192E7C5387864204240A /* SourceControlRepositorySnapshot.swift */; };
+		3F43B68DD6DEFF3D8E5BB703 /* SourceControlRootSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104E8B9A7031453411155E4A /* SourceControlRootSelection.swift */; };
+		5F56930FDA37FADA7BE924B8 /* SourceControlRootSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F78E4A44B98AEDAE8149A19 /* SourceControlRootSelectionTests.swift */; };
 		7052AAFFA3575FA14B89A738 /* SourceControlStatusParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A951AE216C2A160A71D4A657 /* SourceControlStatusParser.swift */; };
 		58D8557D78A009CE0E812E9B /* SourceControlStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E163BCF61F0CED46EB0693B9 /* SourceControlStore.swift */; };
 		10CBC46439734A0F84E01A83 /* SourceControlWorkTreeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 492CE7339662A7AB3536836C /* SourceControlWorkTreeAction.swift */; };
@@ -6958,6 +6961,8 @@
 		D12925020000000000000002 /* FileDropPaneTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDropPaneTarget.swift; sourceTree = "<group>"; };
 		F12748000000000000000002 /* FileEditorWordWrapShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileEditorWordWrapShortcutTests.swift; sourceTree = "<group>"; };
 		FE5996010000000000000001 /* FileExplorerCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerCellView.swift; sourceTree = "<group>"; };
+		4B6A277F689B3D65F7BED260 /* FileExplorerChangedFolders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerChangedFolders.swift; sourceTree = "<group>"; };
+		414BB29F6B23F188ED4D6F84 /* FileExplorerChangedFoldersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileExplorerChangedFoldersTests.swift"; sourceTree = "<group>"; };
 		5BF8AA8182149D0EC033A391 /* FileExplorerContainerView+SearchStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileExplorerContainerView+SearchStatus.swift"; sourceTree = "<group>"; };
 		12914C0212914C0212914C02 /* FileExplorerContextMenuReloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerContextMenuReloadTests.swift; sourceTree = "<group>"; };
 		C40410010000000000000020 /* FileExplorerDoubleClickActionSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerDoubleClickActionSettings.swift; sourceTree = "<group>"; };
@@ -8479,8 +8484,9 @@
 		977B7C2923C2A35BE863BE6F /* SourceControlGroupHeaderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlGroupHeaderRow.swift; sourceTree = "<group>"; };
 		04F175F95A81217A6E33FC2A /* SourceControlPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlPanelView.swift; sourceTree = "<group>"; };
 		35D22BE0DDFF3AC4D02E1147 /* SourceControlRepositoryHeaderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlRepositoryHeaderRow.swift; sourceTree = "<group>"; };
-		1CAC3DBE362E1BEF716DAF3D /* SourceControlRepositoryMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlRepositoryMemory.swift; sourceTree = "<group>"; };
 		381C192E7C5387864204240A /* SourceControlRepositorySnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlRepositorySnapshot.swift; sourceTree = "<group>"; };
+		104E8B9A7031453411155E4A /* SourceControlRootSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlRootSelection.swift; sourceTree = "<group>"; };
+		1F78E4A44B98AEDAE8149A19 /* SourceControlRootSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceControlRootSelectionTests.swift"; sourceTree = "<group>"; };
 		A951AE216C2A160A71D4A657 /* SourceControlStatusParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlStatusParser.swift; sourceTree = "<group>"; };
 		E163BCF61F0CED46EB0693B9 /* SourceControlStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlStore.swift; sourceTree = "<group>"; };
 		492CE7339662A7AB3536836C /* SourceControlWorkTreeAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceControlWorkTreeAction.swift; sourceTree = "<group>"; };
@@ -12778,7 +12784,6 @@
 				977B7C2923C2A35BE863BE6F /* SourceControlGroupHeaderRow.swift */,
 				04F175F95A81217A6E33FC2A /* SourceControlPanelView.swift */,
 				35D22BE0DDFF3AC4D02E1147 /* SourceControlRepositoryHeaderRow.swift */,
-				1CAC3DBE362E1BEF716DAF3D /* SourceControlRepositoryMemory.swift */,
 				381C192E7C5387864204240A /* SourceControlRepositorySnapshot.swift */,
 				A951AE216C2A160A71D4A657 /* SourceControlStatusParser.swift */,
 				E163BCF61F0CED46EB0693B9 /* SourceControlStore.swift */,
@@ -12803,6 +12808,8 @@
 				8D740CF019FD6241F0762017 /* FileExplorerGlobPattern.swift */,
 				CE881CF59DDF9EEBE4A3C1D4 /* FileExplorerGlobSegment.swift */,
 				D74605F5795D0409B433EC16 /* FileExplorerStore+Exclude.swift */,
+				104E8B9A7031453411155E4A /* SourceControlRootSelection.swift */,
+				4B6A277F689B3D65F7BED260 /* FileExplorerChangedFolders.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -14458,6 +14465,8 @@
 				420B452597A14F3948412FB1 /* DiffEditFileServiceTests.swift */,
 				D23CB88D3B4EF46C3FF271F4 /* FileExplorerExcludeFilterTests.swift */,
 				82795EEA555D3442EB18A2E1 /* SourceControlGitClientTests.swift */,
+				1F78E4A44B98AEDAE8149A19 /* SourceControlRootSelectionTests.swift */,
+				414BB29F6B23F188ED4D6F84 /* FileExplorerChangedFoldersTests.swift */,
 			);
 			path = cmuxTests;
 			sourceTree = "<group>";
@@ -16371,6 +16380,7 @@
 				D0B10022A1B2C3D4E5F60001 /* FileDropOverlayViewHitTesting.swift in Sources */,
 				D12925020000000000000001 /* FileDropPaneTarget.swift in Sources */,
 				FE5996010000000000000002 /* FileExplorerCellView.swift in Sources */,
+				CA1A1EF954AAA4803E063EB1 /* FileExplorerChangedFolders.swift in Sources */,
 				58577BB461FB6F36BB3ACF86 /* FileExplorerContainerView+SearchStatus.swift in Sources */,
 				C40410010000000000000021 /* FileExplorerDoubleClickActionSettings.swift in Sources */,
 				FEAC00000000000000000003 /* FileExplorerError+Mutation.swift in Sources */,
@@ -17358,8 +17368,8 @@
 				6425E2288A585B8FEA6DDC98 /* SourceControlGroupHeaderRow.swift in Sources */,
 				DB24D04122D629C715488D16 /* SourceControlPanelView.swift in Sources */,
 				F9C74F1127E35E825829BB7C /* SourceControlRepositoryHeaderRow.swift in Sources */,
-				1AA9D07423E1D0E667B706FA /* SourceControlRepositoryMemory.swift in Sources */,
 				B130361B63DFC4355F23759B /* SourceControlRepositorySnapshot.swift in Sources */,
+				3F43B68DD6DEFF3D8E5BB703 /* SourceControlRootSelection.swift in Sources */,
 				7052AAFFA3575FA14B89A738 /* SourceControlStatusParser.swift in Sources */,
 				58D8557D78A009CE0E812E9B /* SourceControlStore.swift in Sources */,
 				10CBC46439734A0F84E01A83 /* SourceControlWorkTreeAction.swift in Sources */,
@@ -19172,6 +19182,7 @@
 				C82094EE9C3CFA5BE97C4833 /* FileDropOverlayViewLifecycleTests.swift in Sources */,
 				D0B10018A1B2C3D4E5F60001 /* FileDropOverlayViewTests.swift in Sources */,
 				F12748000000000000000001 /* FileEditorWordWrapShortcutTests.swift in Sources */,
+				B55FEE489AF3C716459DDEC7 /* FileExplorerChangedFoldersTests.swift in Sources */,
 				12914C0112914C0112914C01 /* FileExplorerContextMenuReloadTests.swift in Sources */,
 				FE002110 /* FileExplorerDoubleClickActionTests.swift in Sources */,
 				22C3AF44B32592CE0CCACA4B /* FileExplorerExcludeFilterTests.swift in Sources */,
@@ -19633,6 +19644,7 @@
 				A7984AD10000000000000001 /* SocketConfigurationLifecycleTests.swift in Sources */,
 					93300001A1B2C3D4E5F60718 /* SocketTerminalBindingRegressionTests.swift in Sources */,
 				0093F5823E3F08A284E2F68F /* SourceControlGitClientTests.swift in Sources */,
+				5F56930FDA37FADA7BE924B8 /* SourceControlRootSelectionTests.swift in Sources */,
 				A13387000000000000000013 /* SplitPaneGeometryProjectionRenderParityTests.swift in Sources */,
 				A1338700000000000000000F /* SplitPaneGeometryProjectionTests.swift in Sources */,
 				0928F192E46E73B3D73237D5 /* SplitSpaceTests.swift in Sources */,

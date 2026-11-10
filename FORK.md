@@ -18,9 +18,9 @@ an editor.
 ## What this fork adds
 
 - **Git tab in the right sidebar** (open the sidebar with ⌘⌥B, then the Git tab):
-  - every Git repository the workspace touches, from the workspace folder and from each
-    terminal's directory, remembered per workspace across restarts until the folder
-    stops being a repository;
+  - the Git repositories the workspace's terminals are in right now: each terminal adds
+    its repository (or the repositories inside its folder), and the list follows
+    every `cd`;
   - branch, ahead/behind, and staged / changes / merge-conflict entries with
     VS Code-style status letters and line counts;
   - live refresh as files change;
@@ -51,9 +51,11 @@ an editor.
   - hides `.git`, `.DS_Store` and the rest of VS Code's `files.exclude` defaults, from
     the tree and from search; change the list with `fileExplorer.exclude` in cmux.json,
     using the same patterns as VS Code (`true` / `false`, or `{"when": "$(basename).ts"}`);
-  - live refresh without reloading the tree, so it no longer flickers while terminals
-    create or delete files, and a fix for decorations that never reached top-level
-    rows or collapsed folders when git status arrived after the tree was shown.
+  - live refresh of every open folder, not only the root: files a terminal or agent
+    creates, deletes or renames appear in place, without reloading the tree, so it
+    does not flicker;
+  - a fix for decorations that never reached top-level rows or collapsed folders when
+    git status arrived after the tree was shown.
 
 ## How it differs from cmux
 

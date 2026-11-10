@@ -3,13 +3,13 @@ import CmuxFoundation
 import Foundation
 import Observation
 
-/// Live Git state for every repository in the selected workspace.
+/// Live Git state for the repositories the selected workspace's terminals are in.
 ///
 /// The Source Control panel owns one store and binds it to the selected
-/// workspace. While bound, the store rediscovers repositories when the
-/// workspace's directories change and refreshes a repository when FSEvents
-/// reports a change under its work tree or Git directory. Nothing runs while
-/// the panel is not mounted.
+/// workspace. While bound, the store rediscovers repositories whenever a
+/// terminal changes directory, so the list follows the terminals, and
+/// refreshes a repository when FSEvents reports a change under its work tree
+/// or Git directory. Nothing runs while the panel is not mounted.
 @MainActor
 @Observable
 final class SourceControlStore {
@@ -26,10 +26,9 @@ final class SourceControlStore {
     private static let maximumConcurrentSnapshots = 4
 
     @ObservationIgnored private let client: SourceControlGitClient
-    @ObservationIgnored private let memory: SourceControlRepositoryMemory
     @ObservationIgnored private weak var workspace: Workspace?
     @ObservationIgnored private(set) var workspaceId: UUID?
-    @ObservationIgnored private var roots: [String] = []
+    @ObservationIgnored private var selection = SourceControlRootSelection()
     @ObservationIgnored private var gitDirectories: [String: String] = [:]
     @ObservationIgnored private var directoriesTask: Task<Void, Never>?
     @ObservationIgnored private var activationTask: Task<Void, Never>?
@@ -42,13 +41,12 @@ final class SourceControlStore {
     /// Bumped on every bind and unbind so work started for an old binding is dropped.
     @ObservationIgnored private var generation = 0
 
-    init(
-        memory: SourceControlRepositoryMemory,
-        client: SourceControlGitClient = SourceControlGitClient()
-    ) {
-        self.memory = memory
+    init(client: SourceControlGitClient = SourceControlGitClient()) {
         self.client = client
     }
+
+    /// Listed repository roots; see ``SourceControlRootSelection``.
+    private var roots: [String] { selection.roots }
 
     func bind(to workspace: Workspace?) {
         if let workspace, workspace.id == workspaceId, self.workspace != nil {
@@ -69,7 +67,6 @@ final class SourceControlStore {
             return
         }
 
-        roots = memory.roots(for: workspace.id)
         // Workspace publishes its directories through Combine; consume them as
         // an async sequence at this seam. @Published replays its current value
         // on subscribe, so this also runs the first discovery.
@@ -81,7 +78,7 @@ final class SourceControlStore {
             for await (panelDirectories, currentDirectory) in directoryChanges {
                 guard let self, self.generation == currentGeneration else { return }
                 self.discoverRepositories(
-                    candidates: Self.candidateDirectories(
+                    candidates: SourceControlRootSelection.candidateDirectories(
                         currentDirectory: currentDirectory,
                         panelDirectories: panelDirectories
                     )
@@ -112,7 +109,7 @@ final class SourceControlStore {
         stopWatcher()
         pendingFullRefresh = false
         pendingRoots = []
-        roots = []
+        selection = SourceControlRootSelection()
         gitDirectories = [:]
         repositories = []
         isRefreshing = false
@@ -124,13 +121,8 @@ final class SourceControlStore {
 
     /// Rediscovers repositories and re-reads all of them (the toolbar's refresh button).
     func refreshAll() {
-        guard let workspace, unsupportedReason == nil else { return }
-        discoverRepositories(
-            candidates: Self.candidateDirectories(
-                currentDirectory: workspace.currentDirectory,
-                panelDirectories: workspace.panelDirectories
-            )
-        )
+        guard unsupportedReason == nil else { return }
+        rediscoverRepositories()
         requestRefresh(nil, showsProgress: true)
     }
 
@@ -153,16 +145,27 @@ final class SourceControlStore {
 
     /// Stops listing `root` until a terminal in this workspace enters it again.
     func removeRepository(_ root: String) {
-        guard let workspaceId else { return }
-        roots = memory.remove(root, for: workspaceId)
+        guard workspaceId != nil else { return }
+        selection.dismiss(root)
         repositories.removeAll { $0.root == root }
         restartWatcher()
     }
 
     // MARK: - Discovery
 
+    /// Rediscovers from the bound workspace's current directories.
+    private func rediscoverRepositories() {
+        guard let workspace else { return }
+        discoverRepositories(
+            candidates: SourceControlRootSelection.candidateDirectories(
+                currentDirectory: workspace.currentDirectory,
+                panelDirectories: workspace.panelDirectories
+            )
+        )
+    }
+
     private func discoverRepositories(candidates: [String]) {
-        guard let workspaceId else { return }
+        guard workspaceId != nil else { return }
         let client = self.client
         let currentGeneration = generation
         discoveryTask?.cancel()
@@ -171,33 +174,21 @@ final class SourceControlStore {
                 await client.discoverRepositories(in: candidates)
             }.value
             guard !Task.isCancelled, let self, self.generation == currentGeneration else { return }
-            let merged = self.memory.merge(discovered, for: workspaceId)
-            let added = Set(merged).subtracting(self.roots)
             let isInitialLoad = !self.hasCompletedInitialLoad && self.refreshTask == nil
-            self.roots = merged
+            let change = self.selection.update(discovered: discovered)
+            if !change.removed.isEmpty {
+                self.repositories.removeAll { change.removed.contains($0.root) }
+            }
             if isInitialLoad {
                 self.requestRefresh(nil, showsProgress: true)
                 self.restartWatcher()
-            } else if !added.isEmpty {
-                self.requestRefresh(added)
+            } else if !change.isEmpty {
+                if !change.added.isEmpty {
+                    self.requestRefresh(change.added)
+                }
                 self.restartWatcher()
             }
         }
-    }
-
-    /// The workspace directory plus every terminal's reported directory.
-    private static func candidateDirectories(
-        currentDirectory: String,
-        panelDirectories: [UUID: String]
-    ) -> [String] {
-        var seen = Set<String>()
-        var directories: [String] = []
-        for directory in [currentDirectory] + panelDirectories.values.sorted() {
-            let trimmed = directory.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmed.isEmpty, seen.insert(trimmed).inserted else { continue }
-            directories.append(trimmed)
-        }
-        return directories
     }
 
     // MARK: - Refresh
@@ -287,15 +278,13 @@ final class SourceControlStore {
         }
     }
 
-    /// Drops remembered roots that stopped being repositories (a project
-    /// folded into a monorepo, a deleted clone), so they leave the list and
-    /// are not shown again after a restart.
+    /// Drops roots that stopped being repositories (a project folded into a
+    /// monorepo, a deleted clone) and looks again, so a terminal still in that
+    /// folder lists the repository that now encloses it.
     private func forget(_ gone: [String]) {
-        guard let workspaceId else { return }
-        for root in gone {
-            roots = memory.remove(root, for: workspaceId)
-        }
+        selection.remove(gone)
         restartWatcher()
+        rediscoverRepositories()
     }
 
     // MARK: - File watching

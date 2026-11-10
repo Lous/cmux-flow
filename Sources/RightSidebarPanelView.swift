@@ -113,11 +113,6 @@ struct RightSidebarPanelView: View {
         FeedCoordinator.shared.store?.pending.count ?? 0
     }
 
-    /// Repositories found per workspace; the app delegate keeps them across panel remounts.
-    private var sourceControlRepositoryMemory: SourceControlRepositoryMemory {
-        AppDelegate.shared?.sourceControlRepositoryMemory ?? SourceControlRepositoryMemory()
-    }
-
     private var featureAvailableModes: [RightSidebarMode] {
         _ = managedPolicyRevision
         return RightSidebarMode.availableModes(
@@ -496,7 +491,6 @@ struct RightSidebarPanelView: View {
             case .sourceControl:
                 SourceControlPanelView(
                     workspace: tabManager.selectedWorkspace,
-                    memory: sourceControlRepositoryMemory,
                     onOpenDiff: { request in
                         guard let workspace = tabManager.selectedWorkspace else { return }
                         SourceControlDiffLauncher().open(request, in: workspace)

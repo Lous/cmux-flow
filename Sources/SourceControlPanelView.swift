@@ -62,14 +62,13 @@ struct SourceControlPanelView: View {
 
     init(
         workspace: Workspace?,
-        memory: SourceControlRepositoryMemory,
         onOpenDiff: @escaping (SourceControlDiffRequest) -> Void,
         onOpenFile: @escaping (String) -> Void
     ) {
         self.workspace = workspace
         self.onOpenDiff = onOpenDiff
         self.onOpenFile = onOpenFile
-        _store = State(initialValue: SourceControlStore(memory: memory))
+        _store = State(initialValue: SourceControlStore())
     }
 
     var body: some View {

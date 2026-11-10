@@ -854,8 +854,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private(set) var cloudMachinePinStore: CloudMachinePinStore?
     /// "Introducing cmux cloud", shown once from the first main window.
     private(set) lazy var cloudWelcomeWindowController = CloudWelcomeWindowController()
-    /// Repositories each workspace's Source Control panel has found this session.
-    private(set) lazy var sourceControlRepositoryMemory = SourceControlRepositoryMemory()
     /// The preview diff tab a Source Control file click reuses, per workspace.
     private(set) lazy var sourceControlDiffPreviewTracker = SourceControlDiffPreviewTracker()
     private(set) lazy var cloudActivationCoordinator = CloudActivationCoordinator(prepare: { try await CmuxTuiSurfaceProviderRegistry.shared.prepareForActivation() }, cleanup: { await CmuxTuiSurfaceProviderRegistry.shared.cancelActivationPreparation() }, analytics: .app)

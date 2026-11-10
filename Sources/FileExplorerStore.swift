@@ -1203,10 +1203,12 @@ final class FileExplorerStore: ObservableObject {
     /// Whether hidden files are shown. Set from FileExplorerState externally.
     var showHiddenFiles: Bool = false
 
-    /// Watches the root directory for filesystem changes (local only).
-    private var directoryWatcher: FileWatcher?
+    /// Watches the whole tree for entries appearing or disappearing (local only).
+    private var directoryWatcher: RecursivePathWatcher?
     private var directoryWatchTask: Task<Void, Never>?
     private var directoryWatchPath: String?
+    /// In-flight in-place re-listings of loaded folders, keyed by path.
+    private var folderRefreshTasks: [String: Task<Void, Never>] = [:]
 
     /// Paths that are logically expanded (persisted across provider changes)
     private(set) var expandedPaths: Set<String> = []
@@ -1631,25 +1633,84 @@ final class FileExplorerStore: ObservableObject {
 
     private func updateDirectoryWatcher() {
         if provider is LocalFileExplorerProvider, !rootPath.isEmpty {
-            guard directoryWatchPath != rootPath || directoryWatcher == nil else { return }
+            guard directoryWatchPath != rootPath || directoryWatchTask == nil else { return }
             stopDirectoryWatcher()
-            // Preserve the previous 0.3s coalescing as a leading-edge throttle.
-            let watcher = FileWatcher(path: rootPath, throttle: .milliseconds(300))
-            directoryWatcher = watcher
-            directoryWatchPath = rootPath
-            let events = watcher.events
+            let path = rootPath
+            directoryWatchPath = path
+            // Recursive, like VS Code's explorer: a file a terminal or agent writes
+            // in an expanded folder shows up as one written in the root does.
             directoryWatchTask = Task { @MainActor [weak self] in
-                for await _ in events {
-                    guard let self else { break }
-                    // Merge the new listing in place: a full reload empties the tree
-                    // and shows the loading state, which flashes on every file a
-                    // terminal or agent creates in the root.
-                    self.refreshRootInPlace()
-                    self.refreshGitStatus()
+                let resolvedPath = FileExplorerChangedFolders.resolvedPath(path)
+                guard let watcher = await RecursivePathWatcher(
+                    paths: [resolvedPath],
+                    throttleInterval: .milliseconds(300),
+                    eventFilter: { FileExplorerChangedFolders.isListingChange($0.paths) }
+                ) else { return }
+                guard !Task.isCancelled, self?.adoptDirectoryWatcher(watcher, for: path) == true else {
+                    await watcher.stop()
+                    return
+                }
+                for await change in watcher.pathEvents {
+                    guard let self, self.directoryWatchPath == path else { break }
+                    self.handleDirectoryChange(change, resolvedRootPath: resolvedPath)
                 }
             }
         } else {
             stopDirectoryWatcher()
+        }
+    }
+
+    private func adoptDirectoryWatcher(_ watcher: RecursivePathWatcher, for path: String) -> Bool {
+        guard directoryWatchPath == path else { return false }
+        directoryWatcher = watcher
+        return true
+    }
+
+    /// Re-lists, in place, the shown folders a change touched: the root and any
+    /// folder whose children are loaded. Folders never listed are read fresh when
+    /// expanded, so their changes are skipped. Nothing is reloaded: a full reload
+    /// empties the tree and shows the loading state, which flashed on every file a
+    /// terminal or agent created.
+    private func handleDirectoryChange(_ change: RecursivePathChange, resolvedRootPath: String) {
+        let root = rootPath
+        let folders: Set<String>
+        if change.requiresFullRescan {
+            folders = Set(nodesByPath.values.filter { $0.isDirectory && $0.children != nil }.map(\.path)).union([root])
+        } else {
+            folders = FileExplorerChangedFolders(
+                eventPaths: change.paths,
+                rootPath: root,
+                resolvedRootPath: resolvedRootPath
+            ).folders
+        }
+        for folder in folders {
+            if Self.pathsEqual(folder, root) {
+                refreshRootInPlace()
+                refreshGitStatus()
+            } else if let node = nodesByPath[folder], node.isDirectory, node.children != nil {
+                refreshChildrenInPlace(of: node)
+            }
+        }
+    }
+
+    /// Re-lists a loaded folder and merges the listing into its children, the
+    /// way ``refreshRootInPlace()`` does for the root.
+    private func refreshChildrenInPlace(of node: FileExplorerNode) {
+        guard let provider, node.children != nil, !node.isLoading, !loadingPaths.contains(node.path) else { return }
+        let path = node.path
+        let context = resourceContextID
+        let showHidden = showHiddenFiles
+        folderRefreshTasks[path]?.cancel()
+        folderRefreshTasks[path] = Task { [weak self] in
+            let entries = try? await provider.listDirectory(path: path, showHidden: showHidden)
+            guard !Task.isCancelled, let self else { return }
+            self.folderRefreshTasks[path] = nil
+            // A folder deleted meanwhile fails to list; its parent's refresh drops it.
+            guard let entries,
+                  self.resourceContextID == context,
+                  self.nodesByPath[path] === node,
+                  node.children != nil else { return }
+            self.mergeListing(self.visibleEntries(entries, filter: self.excludeFilter), into: node)
         }
     }
 
@@ -1705,13 +1766,20 @@ final class FileExplorerStore: ObservableObject {
         return trimmed(lhs) == trimmed(rhs)
     }
 
-    /// Cancels the directory-watch consumer and drops the watcher; the watcher's
-    /// deinit cancels its `DispatchSource`s synchronously.
+    /// Cancels the directory-watch consumer, stops the watcher and drops any
+    /// folder re-listing still in flight.
     private func stopDirectoryWatcher() {
         directoryWatchTask?.cancel()
         directoryWatchTask = nil
+        if let directoryWatcher {
+            Task { await directoryWatcher.stop() }
+        }
         directoryWatcher = nil
         directoryWatchPath = nil
+        for task in folderRefreshTasks.values {
+            task.cancel()
+        }
+        folderRefreshTasks = [:]
     }
 
     func setProvider(_ newProvider: FileExplorerProvider?, reloadIfAvailable: Bool = true) {
@@ -1776,13 +1844,18 @@ final class FileExplorerStore: ObservableObject {
                   let self,
                   self.rootPath == path,
                   self.resourceContextID == context else { return }
-            self.mergeRootEntries(self.visibleEntries(entries, filter: self.excludeFilter))
+            self.mergeListing(self.visibleEntries(entries, filter: self.excludeFilter), into: nil)
         }
     }
 
-    private func mergeRootEntries(_ entries: [FileExplorerEntry]) {
+    /// Merges a fresh listing into the root (`parent` nil) or a loaded folder.
+    /// Nodes for entries that still exist are kept, with their loaded children,
+    /// expansion and selection; nothing changes when no entry appeared or
+    /// disappeared.
+    private func mergeListing(_ entries: [FileExplorerEntry], into parent: FileExplorerNode?) {
+        let current = parent.map { $0.children ?? [] } ?? rootNodes
         var existing: [String: FileExplorerNode] = [:]
-        for node in rootNodes {
+        for node in current {
             existing[node.path] = node
         }
         var directoriesToReexpand: [FileExplorerNode] = []
@@ -1802,21 +1875,27 @@ final class FileExplorerStore: ObservableObject {
             return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
         }
         // Nothing appeared or disappeared (a metadata-only change): leave the tree alone.
-        guard merged.map(\.path) != rootNodes.map(\.path) else { return }
+        guard merged.map(\.path) != current.map(\.path) else { return }
 
         let keptPaths = Set(merged.map(\.path))
-        let removedRoots = rootNodes.map(\.path).filter { !keptPaths.contains($0) }
-        if !removedRoots.isEmpty {
+        let removedPaths = current.map(\.path).filter { !keptPaths.contains($0) }
+        if !removedPaths.isEmpty {
             nodesByPath = nodesByPath.filter { path, _ in
-                !removedRoots.contains { path == $0 || path.hasPrefix($0 + "/") }
+                !removedPaths.contains { path == $0 || path.hasPrefix($0 + "/") }
             }
             if let selectedPath, nodesByPath[selectedPath] == nil {
                 self.selectedPath = nil
             }
             selectedPaths = selectedPaths.filter { nodesByPath[$0] != nil }
         }
-        rootNodes = merged
-        contentRevision &+= 1
+        if let parent {
+            // The outline reloads loaded folders' rows in place on this signal.
+            parent.children = merged
+            objectWillChange.send()
+        } else {
+            rootNodes = merged
+            contentRevision &+= 1
+        }
 
         for directory in directoriesToReexpand {
             directory.isLoading = true
